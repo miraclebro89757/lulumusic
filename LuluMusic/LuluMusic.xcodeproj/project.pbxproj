@@ -1,0 +1,441 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7FFC00000000000000000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000010 /* Assets.xcassets */; };
+		7FFC00000000000000000014 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000013 /* PrivacyInfo.xcprivacy */; };
+		7FFC00000000000000000258 /* LuluMusicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000064 /* LuluMusicApp.swift */; };
+		7FFC00000000000000000259 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000065 /* ContentView.swift */; };
+		7FFC0000000000000000025A /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000066 /* L10n.swift */; };
+		7FFC0000000000000000025B /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000067 /* AppTheme.swift */; };
+		7FFC0000000000000000025C /* ImportSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000068 /* ImportSource.swift */; };
+		7FFC0000000000000000025D /* RepeatMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000069 /* RepeatMode.swift */; };
+		7FFC0000000000000000025E /* PlaybackItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000006A /* PlaybackItem.swift */; };
+		7FFC0000000000000000025F /* Track.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000006B /* Track.swift */; };
+		7FFC00000000000000000260 /* MetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000006C /* MetadataExtractor.swift */; };
+		7FFC00000000000000000261 /* AudioSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000006D /* AudioSessionController.swift */; };
+		7FFC00000000000000000262 /* QRCodeImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000006E /* QRCodeImage.swift */; };
+		7FFC00000000000000000263 /* LocalIPAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000006F /* LocalIPAddress.swift */; };
+		7FFC00000000000000000264 /* LibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000070 /* LibraryService.swift */; };
+		7FFC00000000000000000265 /* NowPlayingCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000071 /* NowPlayingCenter.swift */; };
+		7FFC00000000000000000266 /* PlayerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000072 /* PlayerEngine.swift */; };
+		7FFC00000000000000000267 /* WebUploadServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000073 /* WebUploadServer.swift */; };
+		7FFC00000000000000000268 /* AudioDocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000074 /* AudioDocumentPicker.swift */; };
+		7FFC00000000000000000269 /* AppleMusicPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000075 /* AppleMusicPicker.swift */; };
+		7FFC0000000000000000026A /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000076 /* ArtworkView.swift */; };
+		7FFC0000000000000000026B /* MiniPlayerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000077 /* MiniPlayerBar.swift */; };
+		7FFC0000000000000000026C /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000078 /* PlayerView.swift */; };
+		7FFC0000000000000000026D /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000079 /* LibraryView.swift */; };
+		7FFC0000000000000000026E /* ImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007A /* ImportView.swift */; };
+		7FFC0000000000000000026F /* WebUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007B /* WebUploadView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		7FFC0000000000000000000F /* LuluMusic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LuluMusic.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7FFC00000000000000000010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7FFC00000000000000000012 /* Preview Content */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "Preview Content"; sourceTree = "<group>"; };
+		7FFC00000000000000000013 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		7FFC00000000000000000015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7FFC00000000000000000016 /* LuluMusic.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LuluMusic.entitlements; sourceTree = "<group>"; };
+		7FFC00000000000000000064 /* LuluMusicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LuluMusicApp.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000065 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000066 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000067 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000068 /* ImportSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportSource.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000069 /* RepeatMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatMode.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000006A /* PlaybackItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackItem.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000006B /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000006C /* MetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataExtractor.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000006D /* AudioSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionController.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000006E /* QRCodeImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeImage.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000006F /* LocalIPAddress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalIPAddress.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000070 /* LibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryService.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000071 /* NowPlayingCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingCenter.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000072 /* PlayerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerEngine.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000073 /* WebUploadServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebUploadServer.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000074 /* AudioDocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDocumentPicker.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000075 /* AppleMusicPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicPicker.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000076 /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkView.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000077 /* MiniPlayerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerBar.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000078 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000079 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000007A /* ImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportView.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000007B /* WebUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebUploadView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7FFC00000000000000000005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+
+		7FFC0000000000000000000C = {
+			isa = PBXGroup;
+			children = (
+				7FFC0000000000000000000E /* LuluMusic */,
+				7FFC0000000000000000000D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7FFC0000000000000000000D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7FFC0000000000000000000F /* LuluMusic.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7FFC0000000000000000000E /* LuluMusic */ = {
+			isa = PBXGroup;
+			children = (
+				7FFC00000000000000000015 /* Info.plist */,
+				7FFC00000000000000000016 /* LuluMusic.entitlements */,
+				7FFC00000000000000000013 /* PrivacyInfo.xcprivacy */,
+				7FFC00000000000000000010 /* Assets.xcassets */,
+				7FFC00000000000000000012 /* Preview Content */,
+				7FFC0000000000000000001E /* Theme */,
+				7FFC0000000000000000001F /* Models */,
+				7FFC00000000000000000020 /* Services */,
+				7FFC00000000000000000021 /* Representables */,
+				7FFC00000000000000000022 /* Views */,
+				7FFC00000000000000000064 /* LuluMusicApp.swift */,
+				7FFC00000000000000000065 /* ContentView.swift */,
+			);
+			path = LuluMusic;
+			sourceTree = "<group>";
+		};
+		7FFC0000000000000000001E /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				7FFC00000000000000000066 /* L10n.swift */,
+				7FFC00000000000000000067 /* AppTheme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		7FFC0000000000000000001F /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				7FFC00000000000000000068 /* ImportSource.swift */,
+				7FFC00000000000000000069 /* RepeatMode.swift */,
+				7FFC0000000000000000006A /* PlaybackItem.swift */,
+				7FFC0000000000000000006B /* Track.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		7FFC00000000000000000020 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				7FFC0000000000000000006C /* MetadataExtractor.swift */,
+				7FFC0000000000000000006D /* AudioSessionController.swift */,
+				7FFC0000000000000000006E /* QRCodeImage.swift */,
+				7FFC0000000000000000006F /* LocalIPAddress.swift */,
+				7FFC00000000000000000070 /* LibraryService.swift */,
+				7FFC00000000000000000071 /* NowPlayingCenter.swift */,
+				7FFC00000000000000000072 /* PlayerEngine.swift */,
+				7FFC00000000000000000073 /* WebUploadServer.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		7FFC00000000000000000021 /* Representables */ = {
+			isa = PBXGroup;
+			children = (
+				7FFC00000000000000000074 /* AudioDocumentPicker.swift */,
+				7FFC00000000000000000075 /* AppleMusicPicker.swift */,
+			);
+			path = Representables;
+			sourceTree = "<group>";
+		};
+		7FFC00000000000000000022 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				7FFC00000000000000000076 /* ArtworkView.swift */,
+				7FFC00000000000000000077 /* MiniPlayerBar.swift */,
+				7FFC00000000000000000078 /* PlayerView.swift */,
+				7FFC00000000000000000079 /* LibraryView.swift */,
+				7FFC0000000000000000007A /* ImportView.swift */,
+				7FFC0000000000000000007B /* WebUploadView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7FFC00000000000000000002 /* LuluMusic */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7FFC00000000000000000006 /* Build configuration list for PBXNativeTarget "LuluMusic" */;
+			buildPhases = (
+				7FFC00000000000000000003 /* Sources */,
+				7FFC00000000000000000005 /* Frameworks */,
+				7FFC00000000000000000004 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LuluMusic;
+			productName = LuluMusic;
+			productReference = 7FFC0000000000000000000F /* LuluMusic.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7FFC00000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					7FFC00000000000000000002 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = 7FFC00000000000000000007 /* Build configuration list for PBXProject "LuluMusic" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				"zh-Hans",
+				Base,
+			);
+			mainGroup = 7FFC0000000000000000000C;
+			productRefGroup = 7FFC0000000000000000000D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7FFC00000000000000000002 /* LuluMusic */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7FFC00000000000000000004 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7FFC00000000000000000011 /* Assets.xcassets in Resources */,
+				7FFC00000000000000000014 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7FFC00000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7FFC00000000000000000258 /* LuluMusicApp.swift in Sources */,
+				7FFC00000000000000000259 /* ContentView.swift in Sources */,
+				7FFC0000000000000000025A /* L10n.swift in Sources */,
+				7FFC0000000000000000025B /* AppTheme.swift in Sources */,
+				7FFC0000000000000000025C /* ImportSource.swift in Sources */,
+				7FFC0000000000000000025D /* RepeatMode.swift in Sources */,
+				7FFC0000000000000000025E /* PlaybackItem.swift in Sources */,
+				7FFC0000000000000000025F /* Track.swift in Sources */,
+				7FFC00000000000000000260 /* MetadataExtractor.swift in Sources */,
+				7FFC00000000000000000261 /* AudioSessionController.swift in Sources */,
+				7FFC00000000000000000262 /* QRCodeImage.swift in Sources */,
+				7FFC00000000000000000263 /* LocalIPAddress.swift in Sources */,
+				7FFC00000000000000000264 /* LibraryService.swift in Sources */,
+				7FFC00000000000000000265 /* NowPlayingCenter.swift in Sources */,
+				7FFC00000000000000000266 /* PlayerEngine.swift in Sources */,
+				7FFC00000000000000000267 /* WebUploadServer.swift in Sources */,
+				7FFC00000000000000000268 /* AudioDocumentPicker.swift in Sources */,
+				7FFC00000000000000000269 /* AppleMusicPicker.swift in Sources */,
+				7FFC0000000000000000026A /* ArtworkView.swift in Sources */,
+				7FFC0000000000000000026B /* MiniPlayerBar.swift in Sources */,
+				7FFC0000000000000000026C /* PlayerView.swift in Sources */,
+				7FFC0000000000000000026D /* LibraryView.swift in Sources */,
+				7FFC0000000000000000026E /* ImportView.swift in Sources */,
+				7FFC0000000000000000026F /* WebUploadView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		7FFC0000000000000000000A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		7FFC0000000000000000000B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7FFC00000000000000000008 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = LuluMusic/LuluMusic.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"LuluMusic/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LuluMusic/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "陆陆音乐";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lulumusic.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		7FFC00000000000000000009 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = LuluMusic/LuluMusic.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"LuluMusic/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LuluMusic/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "陆陆音乐";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lulumusic.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7FFC00000000000000000007 /* Build configuration list for PBXProject "LuluMusic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7FFC0000000000000000000A /* Debug */,
+				7FFC0000000000000000000B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7FFC00000000000000000006 /* Build configuration list for PBXNativeTarget "LuluMusic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7FFC00000000000000000008 /* Debug */,
+				7FFC00000000000000000009 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7FFC00000000000000000001 /* Project object */;
+}
