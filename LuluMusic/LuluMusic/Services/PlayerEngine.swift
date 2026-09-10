@@ -11,22 +11,27 @@ final class PlayerEngine {
     private(set) var isPlaying = false
     private(set) var currentTime: TimeInterval = 0
     private(set) var duration: TimeInterval = 0
-    var repeatMode: RepeatMode = .off
-    var isShuffle = false
+    var navigator = PlaybackNavigator(mode: .sequential)
     var isFullPlayerPresented = false
+    var danmakuEnabled = true
+    var resumeStore: ResumeStoring = UserDefaultsResumeStore()
+
+    var playbackMode: PlaybackMode {
+        get { navigator.mode }
+        set {
+            let old = navigator.mode
+            navigator.mode = newValue
+            applyModeChange(from: old, to: newValue)
+        }
+    }
 
     var current: PlaybackItem? {
         queue.indices.contains(currentIndex) ? queue[currentIndex] : nil
     }
 
-    var playbackModeTitle: String {
-        if isShuffle { return L10n.shuffle }
-        switch repeatMode {
-        case .off: return L10n.sequential
-        case .all: return L10n.repeatAll
-        case .one: return L10n.repeatOne
-        }
-    }
+    var playbackModeTitle: String { navigator.mode.title }
+
+    var currentTimeMS: Int { PlaybackResumeState.positionMS(from: currentTime) }
 
     private var player: AVPlayer?
     private var timeObserver: Any?
@@ -48,16 +53,16 @@ final class PlayerEngine {
         play(items: items, startAt: min(max(0, index), items.count - 1))
     }
 
-    func play(items: [PlaybackItem], startAt index: Int) {
+    func play(items: [PlaybackItem], startAt index: Int, resume: Bool = false) {
         unshuffledQueue = items
-        if isShuffle {
-            queue = Self.shuffled(items, pinning: items[index].id)
+        if navigator.mode == .shuffle {
+            queue = PlaybackNavigator.shuffledOrder(of: items, pinning: index)
             currentIndex = queue.firstIndex(where: { $0.id == items[index].id }) ?? 0
         } else {
             queue = items
             currentIndex = index
         }
-        loadCurrent(autoplay: true)
+        loadCurrent(autoplay: true, resume: resume)
     }
 
     func playNow(_ track: Track, library: [Track]) {
@@ -116,21 +121,19 @@ final class PlayerEngine {
 
     func playNext(userInitiated: Bool = true) {
         guard !queue.isEmpty else { return }
-        if !userInitiated, repeatMode == .one {
+        if userInitiated {
+            currentIndex = navigator.indexOnUserNext(currentIndex: currentIndex, count: queue.count)
+            loadCurrent(autoplay: true)
+            return
+        }
+        switch navigator.actionOnTrackEnd(currentIndex: currentIndex, count: queue.count) {
+        case .replayCurrent:
             seek(to: 0)
             play()
-            return
-        }
-        let last = queue.count - 1
-        if currentIndex < last {
-            currentIndex += 1
+        case .advanceTo(let index):
+            currentIndex = index
             loadCurrent(autoplay: true)
-            return
-        }
-        if repeatMode == .all || isShuffle {
-            currentIndex = 0
-            loadCurrent(autoplay: true)
-        } else {
+        case .stop:
             seek(to: 0)
             pause()
         }
@@ -138,40 +141,77 @@ final class PlayerEngine {
 
     func playPrevious() {
         guard !queue.isEmpty else { return }
-        if currentTime > 3 {
+        switch navigator.actionOnUserPrevious(
+            currentIndex: currentIndex,
+            count: queue.count,
+            positionMS: currentTimeMS
+        ) {
+        case .seekToStart:
             seek(to: 0)
-            return
+        case .previousIndex(let index):
+            currentIndex = index
+            loadCurrent(autoplay: true)
         }
-        if currentIndex > 0 {
-            currentIndex -= 1
-        } else if repeatMode == .all || isShuffle {
-            currentIndex = queue.count - 1
-        } else {
-            seek(to: 0)
-            return
-        }
-        loadCurrent(autoplay: true)
     }
 
     func seek(to time: TimeInterval) {
         let cm = CMTime(seconds: max(0, time), preferredTimescale: 600)
         player?.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero)
         currentTime = max(0, time)
+        persistResume()
         publishNowPlaying()
     }
 
-    func cycleRepeatMode() {
-        repeatMode = repeatMode.next
+    func cyclePlaybackMode() {
+        let old = navigator.mode
+        navigator.cycle()
+        applyModeChange(from: old, to: navigator.mode)
+        persistResume()
         publishNowPlaying()
     }
 
-    func toggleShuffle() {
-        isShuffle.toggle()
-        guard let currentID = current?.id else { return }
-        if isShuffle {
-            if unshuffledQueue.isEmpty { unshuffledQueue = queue }
-            queue = Self.shuffled(unshuffledQueue, pinning: currentID)
+    func restoreSession(library: [Track]) {
+        let state = resumeStore.load()
+        danmakuEnabled = state.danmakuEnabled
+        navigator.mode = state.mode
+        guard let trackID = state.trackID,
+              let index = library.firstIndex(where: { $0.id == trackID }) else { return }
+        unshuffledQueue = library.map(PlaybackItem.init)
+        if navigator.mode == .shuffle {
+            queue = PlaybackNavigator.shuffledOrder(of: unshuffledQueue, pinning: index)
+            currentIndex = queue.firstIndex(where: { $0.id == trackID }) ?? 0
         } else {
+            queue = unshuffledQueue
+            currentIndex = index
+        }
+        loadCurrent(autoplay: false, resume: false)
+        let position = state.positionMS > 0 ? state.positionMS : (queue[currentIndex].lastPositionMS)
+        if position > 0 {
+            seek(to: TimeInterval(position) / 1000.0)
+        }
+        pause()
+    }
+
+    func persistResume() {
+        resumeStore.save(
+            PlaybackResumeState(
+                trackID: current?.id,
+                positionMS: currentTimeMS,
+                danmakuEnabled: danmakuEnabled,
+                mode: navigator.mode
+            )
+        )
+    }
+
+    private func applyModeChange(from old: PlaybackMode, to new: PlaybackMode) {
+        guard let currentID = current?.id else { return }
+        if new == .shuffle && old != .shuffle {
+            if unshuffledQueue.isEmpty { unshuffledQueue = queue }
+            queue = PlaybackNavigator.shuffledOrder(
+                of: unshuffledQueue,
+                pinning: unshuffledQueue.firstIndex(where: { $0.id == currentID }) ?? 0
+            )
+        } else if old == .shuffle && new != .shuffle {
             let source = unshuffledQueue.isEmpty ? queue : unshuffledQueue
             queue = source
         }
@@ -201,6 +241,7 @@ final class PlayerEngine {
     }
 
     private func stopCompletely() {
+        persistResume()
         player?.pause()
         player?.replaceCurrentItem(with: nil)
         queue = []
@@ -212,7 +253,7 @@ final class PlayerEngine {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
-    private func loadCurrent(autoplay: Bool) {
+    private func loadCurrent(autoplay: Bool, resume: Bool = false) {
         guard let item = current else {
             stopCompletely()
             return
@@ -240,7 +281,7 @@ final class PlayerEngine {
         duration = item.duration
         currentTime = 0
 
-        let interval = CMTime(seconds: 0.25, preferredTimescale: 600)
+        let interval = CMTime(seconds: 0.05, preferredTimescale: 600)
         timeObserver = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -248,6 +289,7 @@ final class PlayerEngine {
                 if let d = self.player?.currentItem?.duration, d.isNumeric, !d.isIndefinite {
                     self.duration = d.seconds
                 }
+                self.persistResume()
             }
         }
 
@@ -261,10 +303,15 @@ final class PlayerEngine {
             }
         }
 
+        if resume, item.lastPositionMS > 0 {
+            seek(to: TimeInterval(item.lastPositionMS) / 1000.0)
+        }
+
         if autoplay {
             player?.play()
             isPlaying = true
         }
+        persistResume()
         publishNowPlaying()
     }
 
@@ -333,13 +380,5 @@ final class PlayerEngine {
             pause()
         }
     }
-
-    private static func shuffled(_ items: [PlaybackItem], pinning id: UUID) -> [PlaybackItem] {
-        guard let pinned = items.first(where: { $0.id == id }) else {
-            return items.shuffled()
-        }
-        var rest = items.filter { $0.id != id }.shuffled()
-        rest.insert(pinned, at: 0)
-        return rest
-    }
 }
+

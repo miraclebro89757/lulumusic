@@ -29,10 +29,10 @@ struct AudioDocumentPicker: UIViewControllerRepresentable {
     }
 
     static var audioTypes: [UTType] {
-        var types: [UTType] = [.audio, .mp3, .mpeg4Audio, .wav, .aiff]
+        var types: [UTType] = [.mp3, .mpeg4Audio, .wav]
         if let aac = UTType("public.aac-audio") { types.append(aac) }
         if let flac = UTType("org.xiph.flac") { types.append(flac) }
-        types.append(contentsOf: ["mp3", "m4a", "aac", "wav", "flac", "aiff", "caf"].compactMap {
+        types.append(contentsOf: ["mp3", "m4a", "aac", "wav", "flac"].compactMap {
             UTType(filenameExtension: $0)
         })
         return types

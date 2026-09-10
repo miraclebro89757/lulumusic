@@ -2,12 +2,22 @@ import SwiftUI
 
 enum AppTheme {
     static let accent = Color.accentColor
-    static let rose = Color(red: 0.91, green: 0.31, blue: 0.48)
-    static let violet = Color(red: 0.35, green: 0.18, blue: 0.55)
+    static let rose = Color(red: 0.95, green: 0.38, blue: 0.42)
+    static let amber = Color(red: 0.95, green: 0.72, blue: 0.35)
+    static let stageBlack = Color(red: 0.04, green: 0.03, blue: 0.05)
+    static let stagePurple = Color(red: 0.22, green: 0.08, blue: 0.28)
+
+    static var concertBackground: LinearGradient {
+        LinearGradient(
+            colors: [stagePurple, stageBlack, Color.black],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
 
     static var artworkGradient: LinearGradient {
         LinearGradient(
-            colors: [violet, rose],
+            colors: [stagePurple, rose],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )

@@ -24,7 +24,7 @@ targets:
         PRODUCT_NAME: LuluMusic
         INFOPLIST_FILE: LuluMusic/Info.plist
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: 陆陆音乐
+        INFOPLIST_KEY_CFBundleDisplayName: LoveSong
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.music
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         CODE_SIGN_ENTITLEMENTS: LuluMusic/LuluMusic.entitlements

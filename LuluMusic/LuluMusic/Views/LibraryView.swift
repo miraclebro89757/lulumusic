@@ -6,15 +6,14 @@ struct LibraryView: View {
     @Environment(LibraryService.self) private var library
     @Query(sort: \Track.dateAdded, order: .reverse) private var tracks: [Track]
     @State private var search = ""
+    @State private var showFiles = false
+    @State private var venueDraft = ""
+    @State private var venueTrack: Track?
 
     var filtered: [Track] {
-        let q = search.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !q.isEmpty else { return tracks }
-        return tracks.filter {
-            $0.title.localizedCaseInsensitiveContains(q)
-                || $0.artist.localizedCaseInsensitiveContains(q)
-                || $0.album.localizedCaseInsensitiveContains(q)
-        }
+        let infos = tracks.map(\.asSearchInfo)
+        let ids = Set(LibrarySearch.filtered(infos, query: search).map(\.id))
+        return tracks.filter { ids.contains($0.id) }
     }
 
     var body: some View {
@@ -24,12 +23,11 @@ struct LibraryView: View {
                     EmptyLibraryView()
                 } else {
                     List {
+                        columnHeader
                         ForEach(filtered) { track in
                             TrackRow(track: track, isCurrent: player.current?.id == track.id, isPlaying: player.isPlaying)
                                 .contentShape(Rectangle())
-                                .onTapGesture {
-                                    play(track)
-                                }
+                                .onTapGesture { play(track) }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button(role: .destructive) {
                                         try? library.delete(track, player: player)
@@ -44,9 +42,10 @@ struct LibraryView: View {
                                         Label(L10n.playNow, systemImage: "play.fill")
                                     }
                                     Button {
-                                        player.enqueueNext(track)
+                                        venueTrack = track
+                                        venueDraft = track.venueTag
                                     } label: {
-                                        Label(L10n.playNext, systemImage: "text.line.first.and.arrowtriangle.forward")
+                                        Label(L10n.setVenue, systemImage: "mappin.and.ellipse")
                                     }
                                     Button(role: .destructive) {
                                         try? library.delete(track, player: player)
@@ -59,19 +58,62 @@ struct LibraryView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle(L10n.tabLibrary)
+            .navigationTitle(L10n.appName)
             .searchable(text: $search, prompt: L10n.searchPrompt)
-            .task {
-                await library.importSharedDocumentsIfNeeded()
-            }
+            .task { await library.importSharedDocumentsIfNeeded() }
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Text("\(tracks.count) \(L10n.tracksUnit)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        showFiles = true
+                    } label: {
+                        Image(systemName: "folder.badge.plus")
+                    }
+                    .accessibilityLabel(L10n.importFilesButton)
+
+                    NavigationLink {
+                        WebUploadView()
+                    } label: {
+                        Image(systemName: "wifi")
+                    }
+                    .accessibilityLabel(L10n.importWebButton)
                 }
             }
+            .sheet(isPresented: $showFiles) {
+                AudioDocumentPicker { urls in
+                    showFiles = false
+                    let accepted = IncomingTransfer.importableURLs(from: urls)
+                    Task { await library.importFiles(from: accepted, source: .files) }
+                }
+                .ignoresSafeArea()
+            }
+            .alert(L10n.setVenue, isPresented: Binding(
+                get: { venueTrack != nil },
+                set: { if !$0 { venueTrack = nil } }
+            )) {
+                TextField(L10n.venuePlaceholder, text: $venueDraft)
+                Button(L10n.done) {
+                    if let track = venueTrack {
+                        library.updateVenueTag(track, venueTag: venueDraft)
+                    }
+                    venueTrack = nil
+                }
+                Button(L10n.cancel, role: .cancel) { venueTrack = nil }
+            }
         }
+    }
+
+    private var columnHeader: some View {
+        HStack {
+            Text(L10n.songTitle).frame(maxWidth: .infinity, alignment: .leading)
+            Text("歌手").frame(width: 72, alignment: .leading)
+            Text(L10n.venueTag).frame(width: 56, alignment: .leading)
+            Text("时长").frame(width: 44, alignment: .trailing)
+        }
+        .font(.caption2.weight(.semibold))
+        .foregroundStyle(.secondary)
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+        .accessibilityHidden(true)
     }
 
     private func play(_ track: Track) {
@@ -89,35 +131,41 @@ struct TrackRow: View {
     var isPlaying: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
-            ArtworkView(url: track.resolvedArtworkURL, seed: track.title + track.artist, cornerRadius: 8)
-                .frame(width: 52, height: 52)
+        HStack(spacing: 10) {
+            ArtworkView(url: track.resolvedArtworkURL, seed: track.title + track.artist, cornerRadius: 6)
+                .frame(width: 44, height: 44)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(track.title)
-                    .font(.body.weight(isCurrent ? .semibold : .regular))
-                    .foregroundStyle(isCurrent ? Color.accentColor : .primary)
-                    .lineLimit(1)
-                Text("\(track.artist) · \(track.album)")
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 4) {
+                    if isCurrent {
+                        Image(systemName: isPlaying ? "waveform" : "pause.fill")
+                            .font(.caption2)
+                            .foregroundStyle(Color.accentColor)
+                    }
+                    Text(track.title)
+                        .font(.body.weight(isCurrent ? .semibold : .regular))
+                        .foregroundStyle(isCurrent ? Color.accentColor : .primary)
+                        .lineLimit(1)
+                }
+                Text(track.artist)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-            Spacer(minLength: 8)
+            Text(track.venueTag.isEmpty ? "—" : track.venueTag)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .frame(width: 56, alignment: .leading)
 
-            VStack(alignment: .trailing, spacing: 4) {
-                if isCurrent {
-                    Image(systemName: isPlaying ? "waveform" : "pause.fill")
-                        .foregroundStyle(Color.accentColor)
-                        .font(.caption)
-                }
-                Text(TimeFormat.duration(track.duration))
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
+            Text(TimeFormat.duration(track.duration))
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(width: 44, alignment: .trailing)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
     }
 }
 

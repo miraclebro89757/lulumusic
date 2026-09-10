@@ -3,6 +3,7 @@ import UIKit
 
 struct WebUploadView: View {
     @Environment(LibraryService.self) private var library
+    @Environment(\.scenePhase) private var scenePhase
     @State private var server = WebUploadServer()
     @State private var copied = false
 
@@ -42,6 +43,18 @@ struct WebUploadView: View {
         }
         .onAppear { startServer() }
         .onDisappear { server.stop() }
+        .onChange(of: scenePhase) { _, phase in
+            let runtime: AppRuntimePhase
+            switch phase {
+            case .active: runtime = .foregroundActive
+            case .inactive: runtime = .inactive
+            case .background: runtime = .background
+            @unknown default: runtime = .inactive
+            }
+            if !WebImportLifecycle.shouldServe(pageVisible: true, phase: runtime) {
+                server.stop()
+            }
+        }
     }
 
     private var statusCard: some View {
@@ -79,8 +92,17 @@ struct WebUploadView: View {
                 Text(server.publicURLString)
                     .font(.system(.body, design: .monospaced))
                     .textSelection(.enabled)
+                Text(L10n.pairingCode)
+                    .font(.headline)
+                    .padding(.top, 6)
+                Text(server.pairingDigits)
+                    .font(.system(size: 36, weight: .bold, design: .monospaced))
+                    .tracking(8)
+                Text(L10n.pairingHint)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 ForEach(server.lanIPs.dropFirst(), id: \.self) { ip in
-                    Text("http://\(ip):\(server.port)/t/\(server.token)/")
+                    Text("http://\(ip):\(server.port)")
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .textSelection(.enabled)

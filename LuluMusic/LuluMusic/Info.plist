@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>陆陆音乐</string>
+	<string>LoveSong</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -18,11 +18,8 @@
 				<string>public.mp3</string>
 				<string>public.mpeg-4-audio</string>
 				<string>public.aac-audio</string>
-				<string>public.aifc-audio</string>
-				<string>public.aiff-audio</string>
 				<string>com.microsoft.waveform-audio</string>
 				<string>org.xiph.flac</string>
-				<string>public.audio</string>
 			</array>
 		</dict>
 	</array>
@@ -49,14 +46,14 @@
 		</dict>
 	</dict>
 	<key>NSAppleMusicUsageDescription</key>
-	<string>陆陆音乐需要访问你的音乐库，以便导入 iPhone 本机与苹果音乐中的歌曲。</string>
+	<string>LoveSong 需要访问你的音乐库，以便导入 iPhone 本机歌曲。</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_http._tcp</string>
-		<string>_lulumusic._tcp</string>
+		<string>_lovesong._tcp</string>
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>陆陆音乐通过同一 Wi‑Fi 开启网页上传，方便你从电脑把音频文件传到手机曲库。</string>
+	<string>LoveSong 通过同一 Wi‑Fi 开启网页上传，方便你从电脑把音频文件传到手机曲库。</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>

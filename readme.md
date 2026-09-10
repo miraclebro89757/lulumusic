@@ -1,3 +1,3 @@
-See README.md for 陆陆音乐 / LuluMusic setup, features, and device install steps.
+LoveSong iOS 播放器。完整说明见 README.md。
 
-完整说明见仓库根目录 README.md。
+See README.md for LoveSong (v0.1 P0): run on iPhone 15 simulator, xcodebuild test, and device install.

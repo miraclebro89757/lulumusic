@@ -13,6 +13,12 @@ final class Track {
     var dateAdded: Date
     var sourceRaw: String
     var originalFileName: String
+    var venueTag: String
+    var lastPositionMS: Int
+
+    var filePath: String { relativeFilePath }
+    var coverArt: String? { relativeArtworkPath }
+    var addedAt: Date { dateAdded }
 
     init(
         id: UUID = UUID(),
@@ -24,7 +30,9 @@ final class Track {
         relativeArtworkPath: String? = nil,
         dateAdded: Date = Date(),
         source: ImportSource,
-        originalFileName: String
+        originalFileName: String,
+        venueTag: String = "",
+        lastPositionMS: Int = 0
     ) {
         self.id = id
         self.title = title
@@ -36,6 +44,12 @@ final class Track {
         self.dateAdded = dateAdded
         self.sourceRaw = source.rawValue
         self.originalFileName = originalFileName
+        self.venueTag = venueTag
+        self.lastPositionMS = lastPositionMS
+    }
+
+    var asSearchInfo: LibraryTrackInfo {
+        LibraryTrackInfo(id: id, title: title, artist: artist, venueTag: venueTag, duration: duration)
     }
 
     var source: ImportSource {

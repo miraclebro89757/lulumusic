@@ -30,6 +30,7 @@ final class WebUploadServer {
     var isRunning = false
     var port: UInt16 = 8787
     var token = ""
+    var pairingDigits = ""
     var lanIPs: [String] = []
     var tasks: [UploadTask] = []
     var lastError: String?
@@ -38,8 +39,8 @@ final class WebUploadServer {
     var onFileReady: ((URL, String) async throws -> Void)?
 
     var publicURL: URL? {
-        guard isRunning, let ip = lanIPs.first else { return nil }
-        return URL(string: "http://\(ip):\(port)/t/\(token)/")
+        guard isRunning, let url = LANBindPolicy.advertisedURL(ips: lanIPs, port: port) else { return nil }
+        return URL(string: url)
     }
 
     var publicURLString: String {
@@ -52,8 +53,11 @@ final class WebUploadServer {
         stop()
         lastError = nil
         token = Self.makeToken()
-        lanIPs = LocalIPAddress.lanIPv4Addresses()
+        let code = PairingCode.generate()
+        pairingDigits = code.digits
+        lanIPs = LocalIPAddress.lanIPv4Addresses().filter(LANBindPolicy.isAdvertisableLAN)
         let engine = HTTPListenerEngine(preferredPort: 8787)
+        engine.authBox = AuthBox(pairingCode: code)
         self.engine = engine
 
         engine.onReady = { [weak self] port in
@@ -62,7 +66,7 @@ final class WebUploadServer {
                 self.port = port
                 self.isRunning = true
                 self.statusText = L10n.serverRunning
-                self.lanIPs = LocalIPAddress.lanIPv4Addresses()
+                self.lanIPs = LocalIPAddress.lanIPv4Addresses().filter(LANBindPolicy.isAdvertisableLAN)
                 UIApplication.shared.isIdleTimerDisabled = true
             }
         }
@@ -156,6 +160,27 @@ final class WebUploadServer {
     }
 }
 
+final class AuthBox: @unchecked Sendable {
+    private let lock = NSLock()
+    private var auth: WiFiImportAuth
+
+    init(pairingCode: PairingCode) {
+        auth = WiFiImportAuth(pairingCode: pairingCode)
+    }
+
+    func pair(entered: String) -> Result<String, PairingAuthError> {
+        lock.lock()
+        defer { lock.unlock() }
+        return auth.pair(entered: entered)
+    }
+
+    func isAuthorized(_ token: String?) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return auth.isAuthorized(sessionToken: token)
+    }
+}
+
 // MARK: - Listener
 
 final class HTTPListenerEngine: @unchecked Sendable {
@@ -169,6 +194,7 @@ final class HTTPListenerEngine: @unchecked Sendable {
     }
 
     var token = ""
+    var authBox = AuthBox(pairingCode: PairingCode.generate())
     var onReady: ((UInt16) -> Void)?
     var onFailed: ((String) -> Void)?
     var onProgress: ((ProgressUpdate) -> Void)?
@@ -232,7 +258,7 @@ final class HTTPListenerEngine: @unchecked Sendable {
     }
 
     private func accept(_ connection: NWConnection) {
-        let http = HTTPConnection(connection: connection, token: token, engine: self)
+        let http = HTTPConnection(connection: connection, engine: self)
         connections[ObjectIdentifier(http)] = http
         http.onClose = { [weak self, weak http] in
             guard let self, let http else { return }
@@ -256,16 +282,14 @@ private final class HTTPConnection: @unchecked Sendable {
     var onClose: (() -> Void)?
 
     private let connection: NWConnection
-    private let token: String
     private weak var engine: HTTPListenerEngine?
     private var headerData = Data()
     private var headersParsed = false
     private var bodyHandler: BodyHandler?
     private var cancelled = false
 
-    init(connection: NWConnection, token: String, engine: HTTPListenerEngine) {
+    init(connection: NWConnection, engine: HTTPListenerEngine) {
         self.connection = connection
-        self.token = token
         self.engine = engine
     }
 
@@ -361,42 +385,77 @@ private final class HTTPConnection: @unchecked Sendable {
     }
 
     private func route(method: String, path: String, headers: [String: String], remainder: Data) {
-        let prefix = "/t/\(token)"
         if method == "OPTIONS" {
             send(status: 204, contentType: "text/plain", body: Data(), extra: ["Access-Control-Allow-Origin": "*"])
             return
         }
 
-        if path == "/" || path == "/index.html" {
-            let html = UploadPageHTML.document(token: token)
+        let session = cookieValue(named: "lovesong_session", from: headers["cookie"])
+        let authorized = engine?.authBox.isAuthorized(session) ?? false
+        let decision = WebImportRouter.route(method: method, path: path, authorized: authorized)
+
+        switch decision {
+        case .rejectedDelete:
+            send(status: 403, contentType: "text/plain; charset=utf-8", body: Data("网页端不允许删除曲库。".utf8))
+        case .page:
+            let html = authorized ? UploadPageHTML.document() : UploadPageHTML.pairingPage()
             send(status: 200, contentType: "text/html; charset=utf-8", body: Data(html.utf8))
-            return
+        case .pair:
+            handlePair(headers: headers, remainder: remainder)
+        case .unauthorized:
+            send(status: 401, contentType: "text/plain; charset=utf-8", body: Data("请先输入配对码。".utf8))
+        case .upload:
+            let fileName = sanitizedFileName(
+                queryItem(named: "filename", in: path)
+                    ?? headers["x-file-name"].flatMap { $0.removingPercentEncoding }
+                    ?? "upload.mp3"
+            )
+            guard ImportFormatAllowlist.isAllowed(fileName: fileName) else {
+                send(status: 415, contentType: "text/plain; charset=utf-8", body: Data(L10n.unsupportedFormat.utf8))
+                return
+            }
+            beginUpload(path: path, headers: headers, remainder: remainder)
+        case .notFound:
+            send(status: 404, contentType: "text/plain", body: Data("not found".utf8))
         }
+    }
 
-        guard path == prefix || path.hasPrefix(prefix + "/") || path.hasPrefix(prefix + "?") else {
-            send(status: 404, contentType: "text/plain; charset=utf-8", body: Data("未找到。请使用手机上显示的完整链接。".utf8))
-            return
+    private func handlePair(headers: [String: String], remainder: Data) {
+        let body = String(data: remainder, encoding: .utf8) ?? ""
+        let code = queryItem(named: "code", in: "/?" + body.replacingOccurrences(of: "&", with: "&"))
+            ?? queryItem(named: "code", in: "/x?" + body)
+            ?? formValue(named: "code", in: body)
+        switch engine?.authBox.pair(entered: code ?? "") {
+        case .success(let token):
+            let html = UploadPageHTML.document()
+            send(
+                status: 200,
+                contentType: "text/html; charset=utf-8",
+                body: Data(html.utf8),
+                extra: ["Set-Cookie": "lovesong_session=\(token); Path=/; HttpOnly"]
+            )
+        default:
+            send(status: 403, contentType: "text/plain; charset=utf-8", body: Data("配对码不正确。".utf8))
         }
+    }
 
-        let rest: String
-        if path == prefix || path == prefix + "/" {
-            rest = "/"
-        } else {
-            rest = String(path.dropFirst(prefix.count))
+    private func cookieValue(named name: String, from header: String?) -> String? {
+        guard let header else { return nil }
+        for part in header.split(separator: ";") {
+            let kv = part.split(separator: "=", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
+            if kv.count == 2, kv[0] == name { return kv[1] }
         }
+        return nil
+    }
 
-        if method == "GET" && (rest == "/" || rest.hasPrefix("/?") || rest == "/index.html") {
-            let html = UploadPageHTML.document(token: token)
-            send(status: 200, contentType: "text/html; charset=utf-8", body: Data(html.utf8))
-            return
+    private func formValue(named name: String, in body: String) -> String? {
+        for pair in body.split(separator: "&") {
+            let kv = pair.split(separator: "=", maxSplits: 1).map(String.init)
+            if kv.count == 2, kv[0] == name {
+                return kv[1].removingPercentEncoding ?? kv[1]
+            }
         }
-
-        if method == "POST" && (rest.hasPrefix("/upload") || rest == "/upload") {
-            beginUpload(path: rest, headers: headers, remainder: remainder)
-            return
-        }
-
-        send(status: 404, contentType: "text/plain", body: Data("not found".utf8))
+        return nil
     }
 
     private func beginUpload(path: String, headers: [String: String], remainder: Data) {
@@ -719,8 +778,11 @@ extension HTTPListenerEngine {
         case 200: return "OK"
         case 204: return "No Content"
         case 400: return "Bad Request"
+        case 401: return "Unauthorized"
+        case 403: return "Forbidden"
         case 404: return "Not Found"
         case 413: return "Payload Too Large"
+        case 415: return "Unsupported Media Type"
         case 500: return "Internal Server Error"
         default: return "OK"
         }
@@ -728,68 +790,79 @@ extension HTTPListenerEngine {
 }
 
 enum UploadPageHTML {
-    static func document(token: String) -> String {
+    static func pairingPage() -> String {
+        """
+        <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <title>LoveSong · 配对</title>
+        <style>
+          :root { color-scheme: dark; }
+          body { margin:0; min-height:100vh; font-family:-apple-system,sans-serif; background:#0c0b10; color:#f6f3f7;
+            display:flex; align-items:center; justify-content:center; }
+          .card { width:min(440px,92vw); background:#16141c; border-radius:24px; padding:28px; }
+          input { font-size:28px; letter-spacing:.4em; width:100%; text-align:center; padding:12px; border-radius:12px; border:0; }
+          button { margin-top:16px; width:100%; border:0; border-radius:14px; padding:14px; background:#c23d6e; color:#fff; font-size:16px; }
+        </style></head><body>
+        <div class="card">
+          <h1>LoveSong</h1>
+          <p>请输入手机上显示的 4 位配对码。</p>
+          <form method="post" action="/pair">
+            <input name="code" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" required autofocus />
+            <button type="submit">连接</button>
+          </form>
+        </div></body></html>
+        """
+    }
+
+    static func document() -> String {
         """
         <!doctype html>
         <html lang="zh-CN">
         <head>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <title>陆陆音乐 · 上传</title>
+        <title>LoveSong · 上传</title>
         <style>
           :root { color-scheme: dark; }
           * { box-sizing: border-box; }
           body {
             margin: 0; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background: radial-gradient(1200px 800px at 10% -10%, #5b2a6e 0%, transparent 50%),
-                        radial-gradient(900px 700px at 110% 10%, #c23d6e 0%, transparent 46%),
-                        #0c0b10;
+                        radial-gradient(900px 700px at 110% 10%, #c23d6e 0%, transparent 46%), #0c0b10;
             color: #f6f3f7; display: flex; align-items: center; justify-content: center; padding: 32px 16px;
           }
-          .card {
-            width: min(560px, 100%); background: rgba(22,20,28,.86); border: 1px solid rgba(255,255,255,.08);
-            border-radius: 28px; padding: 28px; box-shadow: 0 30px 80px rgba(0,0,0,.35); backdrop-filter: blur(16px);
-          }
-          h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: .02em; }
+          .card { width: min(560px, 100%); background: rgba(22,20,28,.86); border-radius: 28px; padding: 28px; }
+          h1 { margin: 0 0 6px; font-size: 28px; }
           p.sub { margin: 0 0 22px; color: #c9c0cc; line-height: 1.5; }
-          .drop {
-            border: 1.5px dashed rgba(255,180,200,.45); border-radius: 20px; padding: 36px 16px; text-align: center;
-            background: rgba(255,255,255,.03); cursor: pointer; transition: .2s ease;
-          }
-          .drop.drag { border-color: #e8507a; background: rgba(232,80,122,.12); }
+          .drop { border: 1.5px dashed rgba(255,180,200,.45); border-radius: 20px; padding: 36px 16px; text-align: center; cursor: pointer; }
+          .drop.drag { border-color: #e8507a; }
           input[type=file] { display: none; }
-          button {
-            margin-top: 16px; width: 100%; border: 0; border-radius: 14px; padding: 14px 16px;
-            background: linear-gradient(90deg,#c23d6e,#8a3d9b); color: white; font-size: 16px; font-weight: 600; cursor: pointer;
-          }
-          .row { margin-top: 14px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 14px; }
+          button { margin-top: 16px; width: 100%; border: 0; border-radius: 14px; padding: 14px; background: #c23d6e; color: white; font-size: 16px; }
+          .row { margin-top: 14px; font-size: 14px; }
           .bar { height: 6px; border-radius: 99px; background: #2a2630; overflow: hidden; margin-top: 6px; }
-          .bar > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg,#ff7aa2,#c23d6e); }
+          .bar > i { display: block; height: 100%; width: 0; background: #ff7aa2; }
           .ok { color: #8ee0b2; } .err { color: #ff9aa8; }
-          .hint { margin-top: 18px; color: #9b93a3; font-size: 12px; }
         </style>
         </head>
         <body>
         <div class="card">
-          <h1>陆陆音乐</h1>
-          <p class="sub">把电脑上的 mp3 / m4a / aac / wav / flac 拖到这里，歌曲会拷进手机曲库，可离线播放。</p>
+          <h1>LoveSong</h1>
+          <p class="sub">拖放 mp3 / m4a / aac / wav / flac（可一次约 30 首）。不支持 ogg。文件只写入手机 App 沙盒，网页不能删歌。</p>
           <label class="drop" id="drop">
-            点击或拖放音频文件<br/><small>可一次选择多首</small>
-            <input id="file" type="file" multiple accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.aiff"/>
+            点击或拖放音频文件<br/><small>可多选</small>
+            <input id="file" type="file" multiple accept=".mp3,.m4a,.aac,.wav,.flac,audio/mpeg,audio/mp4,audio/wav,audio/flac"/>
           </label>
-          <form id="fallback" method="post" action="/t/\(token)/upload" enctype="multipart/form-data">
+          <form id="fallback" method="post" action="/upload" enctype="multipart/form-data">
             <button type="submit">开始上传</button>
           </form>
           <div id="list"></div>
-          <p class="hint">LuluMusic local upload · token \(token) · keep the iPhone screen on this page.</p>
         </div>
         <script>
         const drop = document.getElementById('drop');
         const input = document.getElementById('file');
         const list = document.getElementById('list');
         const fallback = document.getElementById('fallback');
-        const allowed = ['mp3','m4a','aac','wav','flac','aiff','aif','caf'];
-
+        const allowed = ['mp3','m4a','aac','wav','flac'];
         function ext(name){ return (name.split('.').pop() || '').toLowerCase(); }
         function row(name){
           const el = document.createElement('div');
@@ -809,7 +882,7 @@ enum UploadPageHTML {
             return;
           }
           const xhr = new XMLHttpRequest();
-          xhr.open('POST', '/t/\(token)/upload?filename=' + encodeURIComponent(file.name));
+          xhr.open('POST', '/upload?filename=' + encodeURIComponent(file.name));
           xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
           xhr.setRequestHeader('X-File-Name', encodeURIComponent(file.name));
           xhr.upload.onprogress = (e) => {
@@ -817,13 +890,8 @@ enum UploadPageHTML {
           };
           xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
-              bar.style.width = '100%';
-              msg.className = 'msg ok';
-              msg.textContent = '已传到手机';
-            } else {
-              msg.className = 'msg err';
-              msg.textContent = '失败：' + xhr.responseText;
-            }
+              bar.style.width = '100%'; msg.className = 'msg ok'; msg.textContent = '已传到手机';
+            } else { msg.className = 'msg err'; msg.textContent = '失败：' + xhr.responseText; }
           };
           xhr.onerror = () => { msg.className = 'msg err'; msg.textContent = '网络错误'; };
           xhr.send(file);
@@ -834,14 +902,10 @@ enum UploadPageHTML {
         drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('drag'); take(e.dataTransfer.files); });
         input.addEventListener('change', () => take(input.files));
         fallback.addEventListener('submit', e => {
-          if (input.files && input.files.length) {
-            e.preventDefault();
-            take(input.files);
-          }
+          if (input.files && input.files.length) { e.preventDefault(); take(input.files); }
         });
         </script>
-        </body>
-        </html>
+        </body></html>
         """
     }
 }

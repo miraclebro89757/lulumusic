@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Generate LuluMusic.xcodeproj without Xcode. IDs are stable."""
+"""Generate LuluMusic.xcodeproj (LoveSong app + LoveSongTests) without Xcode."""
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 ROOT = Path("/workspace/LuluMusic")
@@ -15,20 +14,28 @@ def hid(n: int) -> str:
 
 
 FILES = [
-    # (group path relative to LuluMusic/, filename, is_source)
     ("", "LuluMusicApp.swift", True),
     ("", "ContentView.swift", True),
     ("Theme", "L10n.swift", True),
     ("Theme", "AppTheme.swift", True),
+    ("Core", "ImportFormatAllowlist.swift", True),
+    ("Core", "PairingAuth.swift", True),
+    ("Core", "PlaybackMode.swift", True),
+    ("Core", "ResumeState.swift", True),
+    ("Core", "LibrarySearch.swift", True),
+    ("Core", "DanmakuCore.swift", True),
+    ("Core", "WebImportPolicy.swift", True),
+    ("Core", "IncomingTransfer.swift", True),
     ("Models", "ImportSource.swift", True),
-    ("Models", "RepeatMode.swift", True),
     ("Models", "PlaybackItem.swift", True),
     ("Models", "Track.swift", True),
+    ("Models", "DanmakuComment.swift", True),
     ("Services", "MetadataExtractor.swift", True),
     ("Services", "AudioSessionController.swift", True),
     ("Services", "QRCodeImage.swift", True),
     ("Services", "LocalIPAddress.swift", True),
     ("Services", "LibraryService.swift", True),
+    ("Services", "DanmakuService.swift", True),
     ("Services", "NowPlayingCenter.swift", True),
     ("Services", "PlayerEngine.swift", True),
     ("Services", "WebUploadServer.swift", True),
@@ -38,18 +45,25 @@ FILES = [
     ("Views", "MiniPlayerBar.swift", True),
     ("Views", "PlayerView.swift", True),
     ("Views", "LibraryView.swift", True),
-    ("Views", "ImportView.swift", True),
     ("Views", "WebUploadView.swift", True),
 ]
 
-# Extra file refs
+TEST_FILES = [
+    "ImportFormatAllowlistTests.swift",
+    "PairingCodeTests.swift",
+    "PlaybackModeTests.swift",
+    "ResumeStateTests.swift",
+    "LibrarySearchTests.swift",
+    "DanmakuStoreAndSchedulerTests.swift",
+    "WebImportPolicyTests.swift",
+]
+
 ASSETS = "Assets.xcassets"
 PREVIEW = "Preview Content"
 PRIVACY = "PrivacyInfo.xcprivacy"
 INFO = "Info.plist"
 ENTITLEMENTS = "LuluMusic.entitlements"
 
-# IDs
 project_id = hid(1)
 target_id = hid(2)
 sources_phase = hid(3)
@@ -73,8 +87,21 @@ privacy_build = hid(20)
 info_ref = hid(21)
 entitlements_ref = hid(22)
 
+test_target = hid(40)
+test_product = hid(41)
+test_sources = hid(42)
+test_frameworks = hid(43)
+test_resources = hid(44)
+test_config_list = hid(45)
+test_debug = hid(46)
+test_release = hid(47)
+proxy_id = hid(48)
+dep_id = hid(49)
+tests_group = hid(50)
+
 groups = {
     "Theme": hid(30),
+    "Core": hid(35),
     "Models": hid(31),
     "Services": hid(32),
     "Representables": hid(33),
@@ -91,16 +118,21 @@ for folder, name, is_source in FILES:
         build_files[key] = hid(n + 500)
     n += 1
 
+test_refs = {}
+test_builds = {}
+n = 800
+for name in TEST_FILES:
+    test_refs[name] = hid(n)
+    test_builds[name] = hid(n + 100)
+    n += 1
 
-def fileref_entry(fid: str, name: str, path: str, ftype: str) -> str:
+
+def fileref_entry(fid: str, name: str, path: str, ftype: str, extra: str = "") -> str:
+    more = f" {extra}" if extra else ""
     return (
         f"\t\t{fid} /* {name} */ = {{isa = PBXFileReference; lastKnownFileType = {ftype}; "
-        f"path = {path}; sourceTree = \"<group>\"; }};\n"
+        f"path = {path}; sourceTree = \"<group>\";{more} }};\n"
     )
-
-
-def build_file_entry(bid: str, fid: str, name: str) -> str:
-    return f"\t\t{bid} /* {name} in Sources */ = {{isa = PBXBuildFile; fileRef = {fid} /* {name} */; }};\n"
 
 
 pbx_build = ""
@@ -109,12 +141,24 @@ pbx_build += f"\t\t{privacy_build} /* PrivacyInfo.xcprivacy in Resources */ = {{
 for folder, name, is_source in FILES:
     key = f"{folder}/{name}" if folder else name
     if is_source:
-        pbx_build += build_file_entry(build_files[key], file_refs[key], name)
+        pbx_build += (
+            f"\t\t{build_files[key]} /* {name} in Sources */ = {{isa = PBXBuildFile; "
+            f"fileRef = {file_refs[key]} /* {name} */; }};\n"
+        )
+for name in TEST_FILES:
+    pbx_build += (
+        f"\t\t{test_builds[name]} /* {name} in Sources */ = {{isa = PBXBuildFile; "
+        f"fileRef = {test_refs[name]} /* {name} */; }};\n"
+    )
 
 pbx_file_refs = ""
 pbx_file_refs += (
     f"\t\t{product_ref} /* LuluMusic.app */ = {{isa = PBXFileReference; explicitFileType = wrapper.application; "
     f"includeInIndex = 0; path = LuluMusic.app; sourceTree = BUILT_PRODUCTS_DIR; }};\n"
+)
+pbx_file_refs += (
+    f"\t\t{test_product} /* LoveSongTests.xctest */ = {{isa = PBXFileReference; explicitFileType = wrapper.cfbundle; "
+    f"includeInIndex = 0; path = LoveSongTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; }};\n"
 )
 pbx_file_refs += (
     f"\t\t{assets_ref} /* Assets.xcassets */ = {{isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; "
@@ -130,10 +174,11 @@ pbx_file_refs += (
 )
 pbx_file_refs += fileref_entry(info_ref, "Info.plist", "Info.plist", "text.plist.xml")
 pbx_file_refs += fileref_entry(entitlements_ref, "LuluMusic.entitlements", "LuluMusic.entitlements", "text.plist.entitlements")
-
 for folder, name, _ in FILES:
     key = f"{folder}/{name}" if folder else name
     pbx_file_refs += fileref_entry(file_refs[key], name, name, "sourcecode.swift")
+for name in TEST_FILES:
+    pbx_file_refs += fileref_entry(test_refs[name], name, name, "sourcecode.swift")
 
 
 def group_children(folder: str) -> str:
@@ -151,15 +196,18 @@ root_children += f"\t\t\t\t{entitlements_ref} /* LuluMusic.entitlements */,\n"
 root_children += f"\t\t\t\t{privacy_ref} /* PrivacyInfo.xcprivacy */,\n"
 root_children += f"\t\t\t\t{assets_ref} /* Assets.xcassets */,\n"
 root_children += f"\t\t\t\t{preview_ref} /* Preview Content */,\n"
-for name in ("Theme", "Models", "Services", "Representables", "Views"):
+for name in ("Theme", "Core", "Models", "Services", "Representables", "Views"):
     root_children += f"\t\t\t\t{groups[name]} /* {name} */,\n"
 root_children += group_children("")
+
+test_children = "".join(f"\t\t\t\t{test_refs[name]} /* {name} */,\n" for name in TEST_FILES)
 
 pbx_groups = f"""
 		{main_group} = {{
 			isa = PBXGroup;
 			children = (
 				{src_group} /* LuluMusic */,
+				{tests_group} /* LoveSongTests */,
 				{products_group} /* Products */,
 			);
 			sourceTree = "<group>";
@@ -168,6 +216,7 @@ pbx_groups = f"""
 			isa = PBXGroup;
 			children = (
 				{product_ref} /* LuluMusic.app */,
+				{test_product} /* LoveSongTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -177,6 +226,13 @@ pbx_groups = f"""
 			children = (
 {root_children}			);
 			path = LuluMusic;
+			sourceTree = "<group>";
+		}};
+		{tests_group} /* LoveSongTests */ = {{
+			isa = PBXGroup;
+			children = (
+{test_children}			);
+			path = LoveSongTests;
 			sourceTree = "<group>";
 		}};
 """
@@ -196,6 +252,9 @@ source_list = "".join(
     for folder, name, is_source in FILES
     if is_source
 )
+test_source_list = "".join(
+    f"\t\t\t\t{test_builds[name]} /* {name} in Sources */,\n" for name in TEST_FILES
+)
 
 common_target_settings = """
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -207,7 +266,7 @@ common_target_settings = """
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LuluMusic/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "陆陆音乐";
+				INFOPLIST_KEY_CFBundleDisplayName = LoveSong;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -228,36 +287,39 @@ common_target_settings = """
 				TARGETED_DEVICE_FAMILY = 1;
 """
 
+test_settings = """
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lulumusic.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LuluMusic.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LuluMusic";
+"""
+
 project_debug = """
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -267,28 +329,14 @@ project_debug = """
 
 project_release = """
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 5.0;
@@ -306,11 +354,28 @@ pbxproj = f"""// !$*UTF8*$!
 /* Begin PBXBuildFile section */
 {pbx_build}/* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		{proxy_id} /* PBXContainerItemProxy */ = {{
+			isa = PBXContainerItemProxy;
+			containerPortal = {project_id} /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = {target_id};
+			remoteInfo = LuluMusic;
+		}};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 {pbx_file_refs}/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		{frameworks_phase} /* Frameworks */ = {{
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		}};
+		{test_frameworks} /* Frameworks */ = {{
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -340,6 +405,24 @@ pbxproj = f"""// !$*UTF8*$!
 			productReference = {product_ref} /* LuluMusic.app */;
 			productType = "com.apple.product-type.application";
 		}};
+		{test_target} /* LoveSongTests */ = {{
+			isa = PBXNativeTarget;
+			buildConfigurationList = {test_config_list} /* Build configuration list for PBXNativeTarget "LoveSongTests" */;
+			buildPhases = (
+				{test_sources} /* Sources */,
+				{test_frameworks} /* Frameworks */,
+				{test_resources} /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				{dep_id} /* PBXTargetDependency */,
+			);
+			name = LoveSongTests;
+			productName = LoveSongTests;
+			productReference = {test_product} /* LoveSongTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		}};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -352,6 +435,10 @@ pbxproj = f"""// !$*UTF8*$!
 				TargetAttributes = {{
 					{target_id} = {{
 						CreatedOnToolsVersion = 15.4;
+					}};
+					{test_target} = {{
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = {target_id};
 					}};
 				}};
 			}};
@@ -370,6 +457,7 @@ pbxproj = f"""// !$*UTF8*$!
 			projectRoot = "";
 			targets = (
 				{target_id} /* LuluMusic */,
+				{test_target} /* LoveSongTests */,
 			);
 		}};
 /* End PBXProject section */
@@ -384,6 +472,13 @@ pbxproj = f"""// !$*UTF8*$!
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		}};
+		{test_resources} /* Resources */ = {{
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		}};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -394,7 +489,22 @@ pbxproj = f"""// !$*UTF8*$!
 {source_list}			);
 			runOnlyForDeploymentPostprocessing = 0;
 		}};
+		{test_sources} /* Sources */ = {{
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+{test_source_list}			);
+			runOnlyForDeploymentPostprocessing = 0;
+		}};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		{dep_id} /* PBXTargetDependency */ = {{
+			isa = PBXTargetDependency;
+			target = {target_id} /* LuluMusic */;
+			targetProxy = {proxy_id} /* PBXContainerItemProxy */;
+		}};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		{debug_project} /* Debug */ = {{
@@ -417,6 +527,16 @@ pbxproj = f"""// !$*UTF8*$!
 			buildSettings = {{{common_target_settings}			}};
 			name = Release;
 		}};
+		{test_debug} /* Debug */ = {{
+			isa = XCBuildConfiguration;
+			buildSettings = {{{test_settings}			}};
+			name = Debug;
+		}};
+		{test_release} /* Release */ = {{
+			isa = XCBuildConfiguration;
+			buildSettings = {{{test_settings}			}};
+			name = Release;
+		}};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -434,6 +554,15 @@ pbxproj = f"""// !$*UTF8*$!
 			buildConfigurations = (
 				{debug_target} /* Debug */,
 				{release_target} /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		}};
+		{test_config_list} /* Build configuration list for PBXNativeTarget "LoveSongTests" */ = {{
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				{test_debug} /* Debug */,
+				{test_release} /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -474,6 +603,19 @@ scheme = f"""<?xml version="1.0" encoding="UTF-8"?>
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
+      <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "{test_target}"
+               BuildableName = "LoveSongTests.xctest"
+               BlueprintName = "LoveSongTests"
+               ReferencedContainer = "container:LuluMusic.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -549,6 +691,10 @@ def main() -> None:
         path = ROOT / "LuluMusic" / folder / name if folder else ROOT / "LuluMusic" / name
         if not path.exists():
             missing.append(str(path))
+    for name in TEST_FILES:
+        path = ROOT / "LoveSongTests" / name
+        if not path.exists():
+            missing.append(str(path))
     extra = [
         ROOT / "LuluMusic" / ASSETS,
         ROOT / "LuluMusic" / PREVIEW,
@@ -560,11 +706,12 @@ def main() -> None:
         if not path.exists():
             missing.append(str(path))
     if missing:
-        raise SystemExit("Missing files:\n" + "\n".join(missing))
+        raise SystemExit("Missing files:\\n" + "\\n".join(missing))
 
     (PROJ / "project.pbxproj").write_text(pbxproj, encoding="utf-8")
     scheme_dir = PROJ / "xcshareddata" / "xcschemes"
     scheme_dir.mkdir(parents=True, exist_ok=True)
+    (scheme_dir / "LoveSong.xcscheme").write_text(scheme, encoding="utf-8")
     (scheme_dir / "LuluMusic.xcscheme").write_text(scheme, encoding="utf-8")
     ws = PROJ / "project.xcworkspace"
     ws.mkdir(parents=True, exist_ok=True)
@@ -572,7 +719,7 @@ def main() -> None:
     (ws / "xcshareddata").mkdir(parents=True, exist_ok=True)
     (ws / "xcshareddata" / "IDEWorkspaceChecks.plist").write_text(workspace_settings, encoding="utf-8")
     print("Wrote", PROJ / "project.pbxproj")
-    print("Swift sources:", len(FILES))
+    print("App sources:", len(FILES), "tests:", len(TEST_FILES))
 
 
 if __name__ == "__main__":

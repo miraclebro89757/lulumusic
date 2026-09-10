@@ -19,7 +19,7 @@ enum LibraryError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .cannotOpen: return L10n.cannotOpenFile
-        case .copyFailed: return L10n.importFailed
+        case .copyFailed: return L10n.importFailedGeneric
         case .protected: return L10n.skippedDRM
         case .unsupported: return L10n.unsupportedFormat
         }
@@ -56,7 +56,10 @@ final class LibraryService {
         try LibraryPaths.ensureDirectories()
 
         let ext = inboundURL.pathExtension.isEmpty ? "m4a" : inboundURL.pathExtension.lowercased()
-        guard Self.allowedExtensions.contains(ext) else { throw LibraryError.unsupported }
+        guard ImportFormatAllowlist.isAllowed(fileName: inboundURL.lastPathComponent)
+                || ImportFormatAllowlist.allowedExtensions.contains(ext) else {
+            throw LibraryError.unsupported
+        }
 
         let id = UUID()
         let fileName = "\(id.uuidString).\(ext)"
@@ -169,7 +172,7 @@ final class LibraryService {
             candidates.append(contentsOf: items.filter { url in
                 var isDir: ObjCBool = false
                 guard fm.fileExists(atPath: url.path, isDirectory: &isDir), !isDir.boolValue else { return false }
-                return Self.allowedExtensions.contains(url.pathExtension.lowercased())
+                return ImportFormatAllowlist.isAllowed(fileName: url.lastPathComponent)
             })
         }
         guard !candidates.isEmpty else { return }
@@ -286,7 +289,16 @@ final class LibraryService {
         return parts.isEmpty ? L10n.importFailed : parts.joined(separator: " · ")
     }
 
-    static let allowedExtensions: Set<String> = [
-        "mp3", "m4a", "aac", "wav", "flac", "aiff", "aif", "caf", "alac"
-    ]
+    func updateVenueTag(_ track: Track, venueTag: String) {
+        track.venueTag = venueTag.trimmingCharacters(in: .whitespacesAndNewlines)
+        try? context.save()
+    }
+
+    func updateLastPosition(trackID: UUID, positionMS: Int) {
+        guard let track = track(id: trackID) else { return }
+        track.lastPositionMS = max(0, positionMS)
+        try? context.save()
+    }
+
+    static let allowedExtensions: Set<String> = ImportFormatAllowlist.allowedExtensions
 }
