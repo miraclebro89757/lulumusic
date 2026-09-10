@@ -24,8 +24,8 @@ struct LibraryView: View {
                 VStack(spacing: 0) {
                     StageSearchField(text: $search)
                         .padding(.horizontal, LoveSongTheme.Space.screen)
-                        .padding(.top, 8)
-                        .padding(.bottom, 10)
+                        .padding(.top, 12)
+                        .padding(.bottom, 12)
 
                     if !tracks.isEmpty {
                         QuietImportBar(
@@ -51,7 +51,7 @@ struct LibraryView: View {
                                 )
                                 .contentShape(Rectangle())
                                 .onTapGesture { play(track) }
-                                .listRowBackground(Color.clear)
+                                .listRowBackground(player.current?.id == track.id ? LoveSongTheme.stageElevated : LoveSongTheme.stageBackground)
                                 .listRowSeparatorTint(LoveSongTheme.separator)
                                 .listRowInsets(EdgeInsets(top: 8, leading: LoveSongTheme.Space.screen, bottom: 8, trailing: LoveSongTheme.Space.screen))
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
@@ -83,6 +83,7 @@ struct LibraryView: View {
                         }
                         .listStyle(.plain)
                         .scrollContentBackground(.hidden)
+                        .background(LoveSongTheme.stageBackground)
                     }
                 }
             }
@@ -181,8 +182,8 @@ struct EmptyLibraryView: View {
 
     var body: some View {
         VStack(spacing: 18) {
-            Spacer()
-            VStack(spacing: 10) {
+            Spacer(minLength: LoveSongTheme.Space.heroEmpty)
+            VStack(spacing: 12) {
                 Text(L10n.emptyLibraryTitle)
                     .font(LoveSongTheme.Font.emptyTitle)
                     .foregroundStyle(LoveSongTheme.textPrimary)
@@ -204,7 +205,7 @@ struct EmptyLibraryView: View {
             QuietImportBar(onFiles: onFiles, onWifi: onWifi)
                 .padding(.horizontal, LoveSongTheme.Space.screen)
                 .padding(.top, 8)
-            Spacer()
+            Spacer(minLength: LoveSongTheme.Space.heroEmpty)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

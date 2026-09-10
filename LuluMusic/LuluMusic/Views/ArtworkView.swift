@@ -36,20 +36,20 @@ struct ConcertStageBackground: View {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
-                        .blur(radius: 48)
-                        .saturation(1.4)
-                        .scaleEffect(1.18)
+                        .blur(radius: 54)
+                        .saturation(1.55)
+                        .scaleEffect(1.22)
                 } else {
                     LoveSongTheme.hashGradient(for: seed)
                 }
             }
-            .opacity(0.62)
+            .opacity(0.78)
             .overlay {
                 LinearGradient(
                     colors: [
-                        LoveSongTheme.stageBackground.opacity(0.15),
-                        LoveSongTheme.stageBackground.opacity(0.72),
-                        LoveSongTheme.stageBackground
+                        LoveSongTheme.stageBackground.opacity(0.08),
+                        LoveSongTheme.stageBackground.opacity(0.45),
+                        LoveSongTheme.stageBackground.opacity(0.92)
                     ],
                     startPoint: .top,
                     endPoint: .bottom

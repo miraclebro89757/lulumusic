@@ -5,33 +5,26 @@ struct ContentView: View {
     @Environment(PlayerEngine.self) private var player
     @Environment(LibraryService.self) private var library
     @Environment(\.scenePhase) private var scenePhase
-    @State private var tab: Tab = .library
-
-    enum Tab: Hashable {
-        case library, player
-    }
+    @State private var tab: AppTab = .library
+    @Namespace private var concertNS
 
     var body: some View {
         @Bindable var player = player
-        TabView(selection: $tab) {
-            LibraryView()
-                .tabItem { Label(L10n.tabLibrary, systemImage: "music.note.list") }
-                .tag(Tab.library)
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    if tab == .library { MiniPlayerBar() }
-                }
-
-            PlayerView()
-                .tabItem { Label(L10n.tabPlayer, systemImage: "play.circle.fill") }
-                .tag(Tab.player)
+        ZStack {
+            tabRoot
+            if player.isFullPlayerPresented {
+                FullPlayerOverlay()
+                    .transition(.opacity)
+                    .zIndex(2)
+            }
         }
+        .animation(.spring(response: 0.42, dampingFraction: 0.84), value: player.isFullPlayerPresented)
+        .environment(\.concertNamespace, concertNS)
+        .environment(\.selectedAppTab, tab)
         .tint(LoveSongTheme.spotlight)
-        .toolbarBackground(LoveSongTheme.stageElevated, for: .tabBar)
+        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
         .toolbarColorScheme(.dark, for: .tabBar)
-        .sheet(isPresented: $player.isFullPlayerPresented) {
-            FullPlayerSheet()
-        }
         .onOpenURL { url in
             guard IncomingTransfer.shouldImport(url: url) else { return }
             Task {
@@ -47,6 +40,57 @@ struct ContentView: View {
             }
         }
     }
+
+    @ViewBuilder
+    private var tabRoot: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26.0, *) {
+            liquidGlassTabs
+        } else {
+            legacyTabs
+        }
+        #else
+        legacyTabs
+        #endif
+    }
+
+    private var legacyTabs: some View {
+        TabView(selection: $tab) {
+            LibraryView()
+                .tabItem { Label(L10n.tabLibrary, systemImage: "music.note.list") }
+                .tag(AppTab.library)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    if tab == .library, !player.isFullPlayerPresented {
+                        MiniPlayerBar(style: .fallbackDock)
+                    }
+                }
+
+            PlayerView()
+                .tabItem { Label(L10n.tabPlayer, systemImage: "play.circle.fill") }
+                .tag(AppTab.player)
+        }
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26.0, *)
+    private var liquidGlassTabs: some View {
+        TabView(selection: $tab) {
+            LibraryView()
+                .tabItem { Label(L10n.tabLibrary, systemImage: "music.note.list") }
+                .tag(AppTab.library)
+
+            PlayerView()
+                .tabItem { Label(L10n.tabPlayer, systemImage: "play.circle.fill") }
+                .tag(AppTab.player)
+        }
+        .tabBarMinimizeBehavior(.onScrollDown)
+        .tabViewBottomAccessory {
+            if tab == .library, player.current != nil, !player.isFullPlayerPresented {
+                MiniPlayerBar(style: .systemAccessory)
+            }
+        }
+    }
+    #endif
 }
 
 #Preview {

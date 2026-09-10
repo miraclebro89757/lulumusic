@@ -39,10 +39,11 @@
 		7FFC00000000000000000273 /* AppleMusicPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007F /* AppleMusicPicker.swift */; };
 		7FFC00000000000000000274 /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000080 /* ArtworkView.swift */; };
 		7FFC00000000000000000275 /* StageComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000081 /* StageComponents.swift */; };
-		7FFC00000000000000000276 /* MiniPlayerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000082 /* MiniPlayerBar.swift */; };
-		7FFC00000000000000000277 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000083 /* PlayerView.swift */; };
-		7FFC00000000000000000278 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000084 /* LibraryView.swift */; };
-		7FFC00000000000000000279 /* WebUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000085 /* WebUploadView.swift */; };
+		7FFC00000000000000000276 /* PlayerChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000082 /* PlayerChrome.swift */; };
+		7FFC00000000000000000277 /* MiniPlayerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000083 /* MiniPlayerBar.swift */; };
+		7FFC00000000000000000278 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000084 /* PlayerView.swift */; };
+		7FFC00000000000000000279 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000085 /* LibraryView.swift */; };
+		7FFC0000000000000000027A /* WebUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000086 /* WebUploadView.swift */; };
 		7FFC00000000000000000384 /* ImportFormatAllowlistTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000320 /* ImportFormatAllowlistTests.swift */; };
 		7FFC00000000000000000385 /* PairingCodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000321 /* PairingCodeTests.swift */; };
 		7FFC00000000000000000386 /* PlaybackModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000322 /* PlaybackModeTests.swift */; };
@@ -100,10 +101,11 @@
 		7FFC0000000000000000007F /* AppleMusicPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicPicker.swift; sourceTree = "<group>"; };
 		7FFC00000000000000000080 /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkView.swift; sourceTree = "<group>"; };
 		7FFC00000000000000000081 /* StageComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageComponents.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000082 /* MiniPlayerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerBar.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000083 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000084 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000085 /* WebUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebUploadView.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000082 /* PlayerChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerChrome.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000083 /* MiniPlayerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerBar.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000084 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000085 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000086 /* WebUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebUploadView.swift; sourceTree = "<group>"; };
 		7FFC00000000000000000320 /* ImportFormatAllowlistTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportFormatAllowlistTests.swift; sourceTree = "<group>"; };
 		7FFC00000000000000000321 /* PairingCodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingCodeTests.swift; sourceTree = "<group>"; };
 		7FFC00000000000000000322 /* PlaybackModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackModeTests.swift; sourceTree = "<group>"; };
@@ -250,10 +252,11 @@
 			children = (
 				7FFC00000000000000000080 /* ArtworkView.swift */,
 				7FFC00000000000000000081 /* StageComponents.swift */,
-				7FFC00000000000000000082 /* MiniPlayerBar.swift */,
-				7FFC00000000000000000083 /* PlayerView.swift */,
-				7FFC00000000000000000084 /* LibraryView.swift */,
-				7FFC00000000000000000085 /* WebUploadView.swift */,
+				7FFC00000000000000000082 /* PlayerChrome.swift */,
+				7FFC00000000000000000083 /* MiniPlayerBar.swift */,
+				7FFC00000000000000000084 /* PlayerView.swift */,
+				7FFC00000000000000000085 /* LibraryView.swift */,
+				7FFC00000000000000000086 /* WebUploadView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -389,10 +392,11 @@
 				7FFC00000000000000000273 /* AppleMusicPicker.swift in Sources */,
 				7FFC00000000000000000274 /* ArtworkView.swift in Sources */,
 				7FFC00000000000000000275 /* StageComponents.swift in Sources */,
-				7FFC00000000000000000276 /* MiniPlayerBar.swift in Sources */,
-				7FFC00000000000000000277 /* PlayerView.swift in Sources */,
-				7FFC00000000000000000278 /* LibraryView.swift in Sources */,
-				7FFC00000000000000000279 /* WebUploadView.swift in Sources */,
+				7FFC00000000000000000276 /* PlayerChrome.swift in Sources */,
+				7FFC00000000000000000277 /* MiniPlayerBar.swift in Sources */,
+				7FFC00000000000000000278 /* PlayerView.swift in Sources */,
+				7FFC00000000000000000279 /* LibraryView.swift in Sources */,
+				7FFC0000000000000000027A /* WebUploadView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

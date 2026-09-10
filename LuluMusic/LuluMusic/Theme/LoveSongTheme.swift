@@ -13,8 +13,9 @@ enum LoveSongTheme {
     static let danmakuAccent = Color(hex: 0xFF8A3D).opacity(0.92)
     static let separator = Color.white.opacity(0.07)
     static let hairline = Color.white.opacity(0.08)
-    static let dim = Color.black.opacity(0.45)
+    static let dim = Color.black.opacity(0.32)
     static let coverShadow = Color.black.opacity(0.55)
+    static let danmakuBarFill = Color.black.opacity(0.86)
 
     enum Font {
         static let playerTitle = SwiftUI.Font.system(size: 28, weight: .bold, design: .rounded)
@@ -30,10 +31,12 @@ enum LoveSongTheme {
 
     enum Space {
         static let rowCover: CGFloat = 56
-        static let playButton: CGFloat = 74
+        static let playButton: CGFloat = 58
+        static let skipButton: CGFloat = 46
         static let miniCover: CGFloat = 44
         static let screen: CGFloat = 20
         static let stack: CGFloat = 16
+        static let heroEmpty: CGFloat = 72
     }
 
     static var stageFill: some View {
@@ -58,8 +61,9 @@ enum LoveSongTheme {
 
     static func applyChrome() {
         let tab = UITabBarAppearance()
-        tab.configureWithOpaqueBackground()
-        tab.backgroundColor = UIColor(stageElevated)
+        tab.configureWithDefaultBackground()
+        tab.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
+        tab.backgroundColor = UIColor(stageBackground).withAlphaComponent(0.28)
         tab.shadowColor = UIColor.white.withAlphaComponent(0.06)
         let item = UITabBarItemAppearance()
         item.normal.iconColor = UIColor(textTertiary)

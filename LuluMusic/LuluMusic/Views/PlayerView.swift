@@ -3,6 +3,7 @@ import SwiftUI
 struct PlayerView: View {
     @Environment(PlayerEngine.self) private var player
     @Environment(DanmakuService.self) private var danmakuService
+    @Environment(\.selectedAppTab) private var selectedTab
     var showsDismiss = false
 
     @State private var runtime = DanmakuRuntime(store: InMemoryDanmakuStore())
@@ -24,12 +25,12 @@ struct PlayerView: View {
                         .padding(.horizontal, LoveSongTheme.Space.screen)
                         .padding(.top, 6)
 
-                    Spacer(minLength: 12)
+                    Spacer(minLength: 16)
 
                     coverStack(side: artworkSide)
                         .padding(.horizontal, LoveSongTheme.Space.screen)
 
-                    Spacer(minLength: 18)
+                    Spacer(minLength: 22)
 
                     metadata
                         .padding(.horizontal, LoveSongTheme.Space.screen)
@@ -40,10 +41,20 @@ struct PlayerView: View {
                         enabled: player.current != nil
                     ) { player.seek(to: $0) }
                     .padding(.horizontal, LoveSongTheme.Space.screen)
-                    .padding(.top, 18)
+                    .padding(.top, 20)
 
-                    transport
-                        .padding(.top, 18)
+                    PlayerTransport(
+                        isPlaying: player.isPlaying,
+                        enabled: player.current != nil,
+                        playbackMode: player.playbackMode,
+                        modeTitle: player.playbackModeTitle,
+                        onMode: { player.cyclePlaybackMode() },
+                        onPrevious: { player.playPrevious() },
+                        onPlayPause: { player.togglePlayPause() },
+                        onNext: { player.playNext() }
+                    )
+                    .padding(.horizontal, LoveSongTheme.Space.screen)
+                    .padding(.top, 16)
 
                     Spacer(minLength: 8)
                 }
@@ -91,11 +102,18 @@ struct PlayerView: View {
         }
     }
 
+    private var coverIsSource: Bool {
+        if showsDismiss { return player.isFullPlayerPresented }
+        return selectedTab == .player && !player.isFullPlayerPresented
+    }
+
     private var header: some View {
         HStack(spacing: 12) {
             if showsDismiss {
                 GlassCircleButton(systemName: "chevron.down") {
-                    player.isFullPlayerPresented = false
+                    withAnimation(.spring(response: 0.42, dampingFraction: 0.84)) {
+                        player.isFullPlayerPresented = false
+                    }
                 }
             }
             if let tag = player.current?.venueTag, !tag.isEmpty {
@@ -107,7 +125,10 @@ struct PlayerView: View {
             } label: {
                 Image(systemName: player.danmakuEnabled ? "captions.bubble.fill" : "captions.bubble")
                     .font(.body.weight(.medium))
+                    .frame(width: 36, height: 36)
                     .foregroundStyle(player.danmakuEnabled ? LoveSongTheme.spotlight : LoveSongTheme.textTertiary)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .overlay(Circle().stroke(LoveSongTheme.hairline, lineWidth: 1))
             }
             .accessibilityLabel(player.danmakuEnabled ? L10n.danmakuOn : L10n.danmakuOff)
         }
@@ -121,6 +142,7 @@ struct PlayerView: View {
             cornerRadius: 18
         )
         .frame(width: side, height: side)
+        .modifier(NowPlayingCoverMatch(isSource: coverIsSource))
         .overlay {
             if player.danmakuEnabled {
                 DanmakuOverlay(items: runtime.flying, size: CGSize(width: side, height: side)) { item in
@@ -136,7 +158,7 @@ struct PlayerView: View {
     }
 
     private var metadata: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 8) {
             Text(player.current?.title ?? L10n.noTrack)
                 .font(LoveSongTheme.Font.playerTitle)
                 .multilineTextAlignment(.center)
@@ -148,46 +170,6 @@ struct PlayerView: View {
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
-    }
-
-    private var transport: some View {
-        HStack(spacing: 0) {
-            Button { player.cyclePlaybackMode() } label: {
-                Image(systemName: player.playbackMode.systemImage)
-                    .font(.title3.weight(.medium))
-                    .foregroundStyle(player.playbackMode == .sequential ? LoveSongTheme.textTertiary : LoveSongTheme.spotlight)
-                    .frame(width: 44, height: 44)
-            }
-            .accessibilityLabel(player.playbackModeTitle)
-
-            Spacer()
-
-            Button { player.playPrevious() } label: {
-                Image(systemName: "backward.fill")
-                    .font(.title2)
-                    .foregroundStyle(LoveSongTheme.textPrimary)
-                    .frame(width: 48, height: 48)
-            }
-
-            SpotlightPlayButton(
-                isPlaying: player.isPlaying,
-                enabled: player.current != nil,
-                action: { player.togglePlayPause() }
-            )
-            .padding(.horizontal, 22)
-
-            Button { player.playNext() } label: {
-                Image(systemName: "forward.fill")
-                    .font(.title2)
-                    .foregroundStyle(LoveSongTheme.textPrimary)
-                    .frame(width: 48, height: 48)
-            }
-
-            Spacer()
-            Color.clear.frame(width: 44, height: 44)
-        }
-        .padding(.horizontal, 12)
-        .disabled(player.queue.isEmpty)
     }
 
     private func sendDanmaku() {
@@ -217,11 +199,18 @@ struct DanmakuOverlay: View {
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: items.isEmpty)) { timeline in
             ZStack(alignment: .topLeading) {
+                LinearGradient(
+                    colors: [Color.black.opacity(0.18), .clear, .clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .allowsHitTesting(false)
+
                 ForEach(items) { item in
                     let travel = min(1, max(0, timeline.date.timeIntervalSince(item.spawnedAt) / 6.2))
                     let x = size.width - travel * (size.width + 180)
-                    let laneBand = size.height * 0.62
-                    let laneStart = size.height * 0.20
+                    let laneBand = size.height * 0.58
+                    let laneStart = size.height * 0.22
                     let y = laneStart + CGFloat(item.lane) * (laneBand / 3.0)
                     let fade: Double = {
                         if item.fading { return 0.18 }
@@ -232,7 +221,7 @@ struct DanmakuOverlay: View {
                     Text(item.record.text)
                         .font(.system(size: item.record.fontSize, weight: .medium, design: .rounded))
                         .foregroundStyle(item.lane == 1 ? LoveSongTheme.danmakuAccent : LoveSongTheme.danmaku)
-                        .shadow(color: .black.opacity(0.85), radius: 3, y: 1)
+                        .shadow(color: .black.opacity(0.86), radius: 3, y: 1)
                         .offset(x: x, y: y)
                         .opacity(fade)
                         .onLongPressGesture { onLongPress(item) }
@@ -243,11 +232,8 @@ struct DanmakuOverlay: View {
     }
 }
 
-struct FullPlayerSheet: View {
+struct FullPlayerOverlay: View {
     var body: some View {
         PlayerView(showsDismiss: true)
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-            .presentationBackground(LoveSongTheme.stageBackground)
     }
 }

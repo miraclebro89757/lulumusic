@@ -44,6 +44,7 @@ FILES = [
     ("Representables", "AppleMusicPicker.swift", True),
     ("Views", "ArtworkView.swift", True),
     ("Views", "StageComponents.swift", True),
+    ("Views", "PlayerChrome.swift", True),
     ("Views", "MiniPlayerBar.swift", True),
     ("Views", "PlayerView.swift", True),
     ("Views", "LibraryView.swift", True),

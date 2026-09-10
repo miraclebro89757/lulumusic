@@ -91,9 +91,7 @@ Xcode：**Product › Test**（⌘U），scheme **LoveSong**。
 
 ## 视觉（演唱会舞台）
 
-深色优先：舞台近黑 `#0A0A0C`、抬升面 `#141418`、追光橙 `#FF8A3D`。Token 与 Tab/导航栏外观在 `LuluMusic/LuluMusic/Theme/LoveSongTheme.swift`；共享控件在 `Views/StageComponents.swift`。封面高斯模糊铺满播放页，弹幕叠在封面上，底部弹幕输入为 `.ultraThinMaterial`。
-
-Scheme / target / 资源名未改：scheme 仍是 **LoveSong**（及别名 **LuluMusic**），App target 仍是 `LuluMusic`。
+深色优先：舞台近黑 `#0A0A0C`、抬升面 `#141418`、追光橙 `#FF8A3D`。Token 在 `Theme/LoveSongTheme.swift`。播放控件（58pt 播放 / 46pt 切歌、6pt 胶囊进度、玻璃运输条）在 `Views/PlayerChrome.swift`；曲库列表保持不透明，玻璃只用在 Tab / MiniPlayer / 播放器控件。封面双层：全屏模糊 bleed + 前景锐利封面，弹幕叠在封面上。iOS 26 使用 `tabBarMinimizeBehavior(.onScrollDown)` + `tabViewBottomAccessory`；更早系统回落到自定义玻璃胶囊 MiniPlayer。Scheme / target 未改： **LoveSong** / **LuluMusic**。
 
 ---
 
@@ -103,7 +101,7 @@ Scheme / target / 资源名未改：scheme 仍是 **LoveSong**（及别名 **Lul
 LuluMusic/LuluMusic.xcodeproj     # scheme: LoveSong / LuluMusic
 LuluMusic/LuluMusic/Theme/        # LoveSongTheme 演唱会色板与字体
 LuluMusic/LuluMusic/Core/         # 可单测逻辑（格式、配对、模式、弹幕、恢复）
-LuluMusic/LuluMusic/Views/        # 曲库、播放器、网页上传、舞台组件
+LuluMusic/LuluMusic/Views/        # 曲库、播放器、网页上传、舞台组件、PlayerChrome
 LuluMusic/LoveSongTests/          # XCTest
 ```
 

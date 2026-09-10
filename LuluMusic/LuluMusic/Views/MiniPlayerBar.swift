@@ -1,22 +1,20 @@
 import SwiftUI
 
+enum MiniPlayerChromeStyle {
+    /// Custom glass capsule above the tab bar (iOS 17–25).
+    case fallbackDock
+    /// System Liquid Glass tab accessory (iOS 26+).
+    case systemAccessory
+}
+
 struct MiniPlayerBar: View {
     @Environment(PlayerEngine.self) private var player
+    @Environment(\.selectedAppTab) private var selectedTab
+    var style: MiniPlayerChromeStyle = .fallbackDock
 
     var body: some View {
         if let current = player.current {
-            VStack(spacing: 0) {
-                GeometryReader { geo in
-                    let fraction = player.duration > 0 ? min(1, max(0, player.currentTime / player.duration)) : 0
-                    ZStack(alignment: .leading) {
-                        Rectangle().fill(LoveSongTheme.separator)
-                        Rectangle()
-                            .fill(LoveSongTheme.spotlight)
-                            .frame(width: geo.size.width * fraction)
-                    }
-                }
-                .frame(height: 2)
-
+            VStack(spacing: 8) {
                 HStack(spacing: 12) {
                     HStack(spacing: 12) {
                         ArtworkView(
@@ -25,6 +23,7 @@ struct MiniPlayerBar: View {
                             cornerRadius: 10
                         )
                         .frame(width: LoveSongTheme.Space.miniCover, height: LoveSongTheme.Space.miniCover)
+                        .modifier(NowPlayingCoverMatch(isSource: coverIsSource))
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(current.title)
@@ -39,32 +38,42 @@ struct MiniPlayerBar: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .contentShape(Rectangle())
-                    .onTapGesture {
-                        player.isFullPlayerPresented = true
-                    }
+                    .onTapGesture(perform: openFullPlayer)
 
-                    Button {
-                        player.togglePlayPause()
-                    } label: {
-                        Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(LoveSongTheme.stageBackground)
-                            .frame(width: 36, height: 36)
-                            .background(LoveSongTheme.spotlight, in: Circle())
-                    }
-                    .buttonStyle(SpotlightButtonStyle())
-                    .accessibilityLabel(player.isPlaying ? L10n.pause : L10n.play)
+                    SpotlightPlayButton(
+                        isPlaying: player.isPlaying,
+                        enabled: true,
+                        diameter: PlayerChrome.miniPlayDiameter,
+                        action: { player.togglePlayPause() }
+                    )
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
+
+                MiniProgressHint(current: player.currentTime, duration: player.duration)
             }
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(LoveSongTheme.hairline, lineWidth: 1)
-            )
-            .padding(.horizontal, 12)
-            .padding(.bottom, 6)
+            .padding(.horizontal, style == .systemAccessory ? 10 : 12)
+            .padding(.vertical, style == .systemAccessory ? 8 : 10)
+            .background {
+                if style == .fallbackDock {
+                    Capsule().fill(.ultraThinMaterial)
+                }
+            }
+            .overlay {
+                if style == .fallbackDock {
+                    Capsule().stroke(LoveSongTheme.hairline, lineWidth: 1)
+                }
+            }
+            .padding(.horizontal, style == .fallbackDock ? 12 : 0)
+            .padding(.bottom, style == .fallbackDock ? 6 : 0)
+        }
+    }
+
+    private var coverIsSource: Bool {
+        selectedTab == .library && !player.isFullPlayerPresented
+    }
+
+    private func openFullPlayer() {
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.84)) {
+            player.isFullPlayerPresented = true
         }
     }
 }
