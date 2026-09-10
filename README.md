@@ -89,12 +89,21 @@ Xcode：**Product › Test**（⌘U），scheme **LoveSong**。
 
 ---
 
+## 视觉（演唱会舞台）
+
+深色优先：舞台近黑 `#0A0A0C`、抬升面 `#141418`、追光橙 `#FF8A3D`。Token 与 Tab/导航栏外观在 `LuluMusic/LuluMusic/Theme/LoveSongTheme.swift`；共享控件在 `Views/StageComponents.swift`。封面高斯模糊铺满播放页，弹幕叠在封面上，底部弹幕输入为 `.ultraThinMaterial`。
+
+Scheme / target / 资源名未改：scheme 仍是 **LoveSong**（及别名 **LuluMusic**），App target 仍是 `LuluMusic`。
+
+---
+
 ## 工程
 
 ```
 LuluMusic/LuluMusic.xcodeproj     # scheme: LoveSong / LuluMusic
+LuluMusic/LuluMusic/Theme/        # LoveSongTheme 演唱会色板与字体
 LuluMusic/LuluMusic/Core/         # 可单测逻辑（格式、配对、模式、弹幕、恢复）
-LuluMusic/LuluMusic/Views/        # 曲库、播放器、网页上传
+LuluMusic/LuluMusic/Views/        # 曲库、播放器、网页上传、舞台组件
 LuluMusic/LoveSongTests/          # XCTest
 ```
 

@@ -5,59 +5,64 @@ struct PlayerView: View {
     @Environment(DanmakuService.self) private var danmakuService
     var showsDismiss = false
 
-    @State private var isScrubbing = false
-    @State private var scrubTime: TimeInterval = 0
     @State private var runtime = DanmakuRuntime(store: InMemoryDanmakuStore())
     @State private var draft = ""
     @State private var inspected: FlyingDanmaku?
+    @FocusState private var danmakuFocused: Bool
 
     var body: some View {
         GeometryReader { proxy in
-            let artworkSide = min(proxy.size.width - 40, proxy.size.height * 0.38)
+            let artworkSide = min(proxy.size.width - 48, proxy.size.height * 0.42)
             ZStack {
-                AppTheme.concertBackground.ignoresSafeArea()
-                BlurredArtworkBackground(
+                ConcertStageBackground(
                     url: player.current?.artworkURL,
                     seed: (player.current?.title ?? "") + (player.current?.artist ?? "empty")
                 )
-                .opacity(0.55)
 
-                VStack(spacing: 14) {
+                VStack(spacing: 0) {
                     header
-                    venueLabel
+                        .padding(.horizontal, LoveSongTheme.Space.screen)
+                        .padding(.top, 6)
 
-                    ZStack {
-                        ArtworkView(
-                            url: player.current?.artworkURL,
-                            seed: (player.current?.title ?? L10n.noTrack) + (player.current?.artist ?? ""),
-                            cornerRadius: 18
-                        )
-                        .frame(width: artworkSide, height: artworkSide)
-                        .shadow(color: .black.opacity(0.45), radius: 24, y: 12)
+                    Spacer(minLength: 12)
 
-                        if player.danmakuEnabled {
-                            DanmakuOverlay(items: runtime.flying, size: CGSize(width: artworkSide, height: artworkSide)) { item in
-                                inspected = item
-                            }
-                            .frame(width: artworkSide, height: artworkSide)
-                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                            .allowsHitTesting(true)
-                        }
-                    }
+                    coverStack(side: artworkSide)
+                        .padding(.horizontal, LoveSongTheme.Space.screen)
+
+                    Spacer(minLength: 18)
 
                     metadata
-                    scrubber
+                        .padding(.horizontal, LoveSongTheme.Space.screen)
+
+                    ConcertScrubber(
+                        current: player.currentTime,
+                        duration: player.duration,
+                        enabled: player.current != nil
+                    ) { player.seek(to: $0) }
+                    .padding(.horizontal, LoveSongTheme.Space.screen)
+                    .padding(.top, 18)
+
                     transport
-                    modeRow
-                    danmakuBar
-                    Spacer(minLength: 0)
+                        .padding(.top, 18)
+
+                    Spacer(minLength: 8)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
                 .padding(.bottom, 8)
             }
         }
-        .foregroundStyle(.white)
+        .ignoresSafeArea(.keyboard)
+        .safeAreaInset(edge: .bottom, spacing: 10) {
+            GlassDanmakuComposer(
+                text: $draft,
+                enabled: player.current != nil,
+                focused: $danmakuFocused,
+                onSend: sendDanmaku
+            )
+            .padding(.horizontal, LoveSongTheme.Space.screen)
+            .padding(.bottom, 6)
+        }
+        .foregroundStyle(LoveSongTheme.textPrimary)
+        .toolbar(.hidden, for: .navigationBar)
         .onChange(of: player.current?.id) { _, _ in
             reloadDanmakuCatalog()
         }
@@ -87,118 +92,102 @@ struct PlayerView: View {
     }
 
     private var header: some View {
-        HStack {
+        HStack(spacing: 12) {
             if showsDismiss {
-                Button { player.isFullPlayerPresented = false } label: {
-                    Image(systemName: "chevron.down").font(.title3.weight(.semibold))
+                GlassCircleButton(systemName: "chevron.down") {
+                    player.isFullPlayerPresented = false
                 }
             }
-            Spacer()
-            Text(L10n.nowPlaying).font(.subheadline.weight(.semibold))
-            Spacer()
+            if let tag = player.current?.venueTag, !tag.isEmpty {
+                VenueChip(text: tag)
+            }
+            Spacer(minLength: 8)
             Button {
                 player.danmakuEnabled.toggle()
             } label: {
                 Image(systemName: player.danmakuEnabled ? "captions.bubble.fill" : "captions.bubble")
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(player.danmakuEnabled ? LoveSongTheme.spotlight : LoveSongTheme.textTertiary)
             }
             .accessibilityLabel(player.danmakuEnabled ? L10n.danmakuOn : L10n.danmakuOff)
         }
+        .frame(minHeight: 36)
     }
 
-    @ViewBuilder
-    private var venueLabel: some View {
-        if let tag = player.current?.venueTag, !tag.isEmpty {
-            Text(tag)
-                .font(.caption.weight(.semibold))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(.white.opacity(0.12), in: Capsule())
+    private func coverStack(side: CGFloat) -> some View {
+        ArtworkView(
+            url: player.current?.artworkURL,
+            seed: (player.current?.title ?? L10n.noTrack) + (player.current?.artist ?? ""),
+            cornerRadius: 18
+        )
+        .frame(width: side, height: side)
+        .overlay {
+            if player.danmakuEnabled {
+                DanmakuOverlay(items: runtime.flying, size: CGSize(width: side, height: side)) { item in
+                    inspected = item
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            }
         }
+        .shadow(color: LoveSongTheme.coverShadow, radius: 28, y: 16)
+        .scaleEffect(player.isPlaying ? 1.015 : 1.0)
+        .animation(.spring(response: 0.72, dampingFraction: 0.86), value: player.isPlaying)
+        .frame(maxWidth: .infinity)
     }
 
     private var metadata: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             Text(player.current?.title ?? L10n.noTrack)
-                .font(.title2.weight(.bold))
+                .font(LoveSongTheme.Font.playerTitle)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
+                .foregroundStyle(LoveSongTheme.textPrimary)
             Text(player.current?.artist ?? L10n.pickFromLibrary)
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.75))
+                .font(LoveSongTheme.Font.playerArtist)
+                .foregroundStyle(LoveSongTheme.textSecondary)
+                .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
     }
 
-    private var scrubber: some View {
-        VStack(spacing: 6) {
-            Slider(
-                value: Binding(
-                    get: { isScrubbing ? scrubTime : player.currentTime },
-                    set: { scrubTime = $0 }
-                ),
-                in: 0...max(player.duration, 0.1)
-            ) { editing in
-                isScrubbing = editing
-                if editing {
-                    scrubTime = player.currentTime
-                } else {
-                    player.seek(to: scrubTime)
-                }
-            }
-            .tint(.white)
-            .disabled(player.current == nil)
-
-            HStack {
-                Text(TimeFormat.duration(isScrubbing ? scrubTime : player.currentTime))
-                Spacer()
-                Text(TimeFormat.duration(player.duration))
-            }
-            .font(.caption.monospacedDigit())
-            .foregroundStyle(.white.opacity(0.7))
-        }
-    }
-
     private var transport: some View {
-        HStack(spacing: 36) {
+        HStack(spacing: 0) {
+            Button { player.cyclePlaybackMode() } label: {
+                Image(systemName: player.playbackMode.systemImage)
+                    .font(.title3.weight(.medium))
+                    .foregroundStyle(player.playbackMode == .sequential ? LoveSongTheme.textTertiary : LoveSongTheme.spotlight)
+                    .frame(width: 44, height: 44)
+            }
+            .accessibilityLabel(player.playbackModeTitle)
+
+            Spacer()
+
             Button { player.playPrevious() } label: {
-                Image(systemName: "backward.fill").font(.title)
+                Image(systemName: "backward.fill")
+                    .font(.title2)
+                    .foregroundStyle(LoveSongTheme.textPrimary)
+                    .frame(width: 48, height: 48)
             }
-            Button { player.togglePlayPause() } label: {
-                Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 72))
-            }
-            .disabled(player.current == nil)
+
+            SpotlightPlayButton(
+                isPlaying: player.isPlaying,
+                enabled: player.current != nil,
+                action: { player.togglePlayPause() }
+            )
+            .padding(.horizontal, 22)
+
             Button { player.playNext() } label: {
-                Image(systemName: "forward.fill").font(.title)
+                Image(systemName: "forward.fill")
+                    .font(.title2)
+                    .foregroundStyle(LoveSongTheme.textPrimary)
+                    .frame(width: 48, height: 48)
             }
+
+            Spacer()
+            Color.clear.frame(width: 44, height: 44)
         }
+        .padding(.horizontal, 12)
         .disabled(player.queue.isEmpty)
-    }
-
-    private var modeRow: some View {
-        Button {
-            player.cyclePlaybackMode()
-        } label: {
-            Label(player.playbackModeTitle, systemImage: player.playbackMode.systemImage)
-                .font(.subheadline.weight(.semibold))
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(.white.opacity(0.12), in: Capsule())
-        }
-        .accessibilityLabel(player.playbackModeTitle)
-    }
-
-    private var danmakuBar: some View {
-        HStack(spacing: 8) {
-            TextField(L10n.danmakuPlaceholder, text: $draft)
-                .textFieldStyle(.plain)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(.white.opacity(0.12), in: Capsule())
-            Button(L10n.danmakuSend) { sendDanmaku() }
-                .buttonStyle(.borderedProminent)
-                .disabled(player.current == nil || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        }
     }
 
     private func sendDanmaku() {
@@ -207,6 +196,7 @@ struct PlayerView: View {
         runtime.enabled = player.danmakuEnabled
         if runtime.send(trackId: id, text: draft, currentTimeMS: player.currentTimeMS) != nil {
             draft = ""
+            danmakuFocused = false
         }
     }
 
@@ -227,20 +217,29 @@ struct DanmakuOverlay: View {
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: items.isEmpty)) { timeline in
             ZStack(alignment: .topLeading) {
-                ForEach(items.filter { !$0.fading }) { item in
-                    let travel = min(1, timeline.date.timeIntervalSince(item.spawnedAt) / 6.0)
-                    let x = size.width - travel * (size.width + 160)
-                    let y = CGFloat(item.lane) * (size.height / 3.2) + 8
+                ForEach(items) { item in
+                    let travel = min(1, max(0, timeline.date.timeIntervalSince(item.spawnedAt) / 6.2))
+                    let x = size.width - travel * (size.width + 180)
+                    let laneBand = size.height * 0.62
+                    let laneStart = size.height * 0.20
+                    let y = laneStart + CGFloat(item.lane) * (laneBand / 3.0)
+                    let fade: Double = {
+                        if item.fading { return 0.18 }
+                        if travel < 0.08 { return travel / 0.08 }
+                        if travel > 0.86 { return max(0, (1 - travel) / 0.14) }
+                        return 1
+                    }()
                     Text(item.record.text)
-                        .font(.system(size: item.record.fontSize, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .shadow(radius: 2)
+                        .font(.system(size: item.record.fontSize, weight: .medium, design: .rounded))
+                        .foregroundStyle(item.lane == 1 ? LoveSongTheme.danmakuAccent : LoveSongTheme.danmaku)
+                        .shadow(color: .black.opacity(0.85), radius: 3, y: 1)
                         .offset(x: x, y: y)
-                        .opacity(item.fading ? 0.25 : 1)
+                        .opacity(fade)
                         .onLongPressGesture { onLongPress(item) }
                 }
             }
         }
+        .allowsHitTesting(true)
     }
 }
 
@@ -249,5 +248,6 @@ struct FullPlayerSheet: View {
         PlayerView(showsDismiss: true)
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
+            .presentationBackground(LoveSongTheme.stageBackground)
     }
 }

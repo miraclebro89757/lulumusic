@@ -25,7 +25,10 @@ struct ContentView: View {
                 .tabItem { Label(L10n.tabPlayer, systemImage: "play.circle.fill") }
                 .tag(Tab.player)
         }
-        .tint(Color.accentColor)
+        .tint(LoveSongTheme.spotlight)
+        .toolbarBackground(LoveSongTheme.stageElevated, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarColorScheme(.dark, for: .tabBar)
         .sheet(isPresented: $player.isFullPlayerPresented) {
             FullPlayerSheet()
         }

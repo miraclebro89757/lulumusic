@@ -21,6 +21,7 @@ struct LoveSongApp: App {
         _player = State(initialValue: PlayerEngine())
         _danmaku = State(initialValue: DanmakuService(container: container))
         try? LibraryPaths.ensureDirectories()
+        LoveSongTheme.applyChrome()
     }
 
     var body: some Scene {

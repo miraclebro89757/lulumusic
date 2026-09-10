@@ -8,7 +8,7 @@ struct ArtworkView: View {
 
     var body: some View {
         ZStack {
-            AppTheme.hashGradient(for: seed)
+            LoveSongTheme.hashGradient(for: seed)
             if let url, let image = UIImage(contentsOfFile: url.path) {
                 Image(uiImage: image)
                     .resizable()
@@ -16,8 +16,7 @@ struct ArtworkView: View {
             } else {
                 Image(systemName: "music.note")
                     .font(.title2.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.92))
-                    .shadow(radius: 2)
+                    .foregroundStyle(LoveSongTheme.textPrimary.opacity(0.85))
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
@@ -25,21 +24,40 @@ struct ArtworkView: View {
     }
 }
 
-struct BlurredArtworkBackground: View {
+struct ConcertStageBackground: View {
     var url: URL?
     var seed: String
 
     var body: some View {
         ZStack {
-            AppTheme.hashGradient(for: seed)
-            if let url, let image = UIImage(contentsOfFile: url.path) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
+            LoveSongTheme.stageBackground
+            Group {
+                if let url, let image = UIImage(contentsOfFile: url.path) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .blur(radius: 48)
+                        .saturation(1.4)
+                        .scaleEffect(1.18)
+                } else {
+                    LoveSongTheme.hashGradient(for: seed)
+                }
             }
+            .opacity(0.62)
+            .overlay {
+                LinearGradient(
+                    colors: [
+                        LoveSongTheme.stageBackground.opacity(0.15),
+                        LoveSongTheme.stageBackground.opacity(0.72),
+                        LoveSongTheme.stageBackground
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+            .overlay(LoveSongTheme.dim)
         }
-        .overlay(.ultraThinMaterial)
-        .overlay(Color.black.opacity(0.35))
         .ignoresSafeArea()
+        .allowsHitTesting(false)
     }
 }

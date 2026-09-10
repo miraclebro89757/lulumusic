@@ -7,6 +7,7 @@ struct LibraryView: View {
     @Query(sort: \Track.dateAdded, order: .reverse) private var tracks: [Track]
     @State private var search = ""
     @State private var showFiles = false
+    @State private var showWifi = false
     @State private var venueDraft = ""
     @State private var venueTrack: Track?
 
@@ -18,16 +19,41 @@ struct LibraryView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if tracks.isEmpty {
-                    EmptyLibraryView()
-                } else {
-                    List {
-                        columnHeader
-                        ForEach(filtered) { track in
-                            TrackRow(track: track, isCurrent: player.current?.id == track.id, isPlaying: player.isPlaying)
+            ZStack {
+                LoveSongTheme.stageFill
+                VStack(spacing: 0) {
+                    StageSearchField(text: $search)
+                        .padding(.horizontal, LoveSongTheme.Space.screen)
+                        .padding(.top, 8)
+                        .padding(.bottom, 10)
+
+                    if !tracks.isEmpty {
+                        QuietImportBar(
+                            onFiles: { showFiles = true },
+                            onWifi: { showWifi = true }
+                        )
+                        .padding(.horizontal, LoveSongTheme.Space.screen)
+                        .padding(.bottom, 8)
+                    }
+
+                    if tracks.isEmpty {
+                        EmptyLibraryView(
+                            onFiles: { showFiles = true },
+                            onWifi: { showWifi = true }
+                        )
+                    } else {
+                        List {
+                            ForEach(filtered) { track in
+                                TrackRow(
+                                    track: track,
+                                    isCurrent: player.current?.id == track.id,
+                                    isPlaying: player.isPlaying
+                                )
                                 .contentShape(Rectangle())
                                 .onTapGesture { play(track) }
+                                .listRowBackground(Color.clear)
+                                .listRowSeparatorTint(LoveSongTheme.separator)
+                                .listRowInsets(EdgeInsets(top: 8, leading: LoveSongTheme.Space.screen, bottom: 8, trailing: LoveSongTheme.Space.screen))
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button(role: .destructive) {
                                         try? library.delete(track, player: player)
@@ -53,30 +79,21 @@ struct LibraryView: View {
                                         Label(L10n.delete, systemImage: "trash")
                                     }
                                 }
+                            }
                         }
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
                     }
-                    .listStyle(.plain)
                 }
             }
-            .navigationTitle(L10n.appName)
-            .searchable(text: $search, prompt: L10n.searchPrompt)
+            .navigationTitle(L10n.tabLibrary)
+            .navigationBarTitleDisplayMode(.large)
+            .toolbarBackground(LoveSongTheme.stageBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .task { await library.importSharedDocumentsIfNeeded() }
-            .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button {
-                        showFiles = true
-                    } label: {
-                        Image(systemName: "folder.badge.plus")
-                    }
-                    .accessibilityLabel(L10n.importFilesButton)
-
-                    NavigationLink {
-                        WebUploadView()
-                    } label: {
-                        Image(systemName: "wifi")
-                    }
-                    .accessibilityLabel(L10n.importWebButton)
-                }
+            .navigationDestination(isPresented: $showWifi) {
+                WebUploadView()
             }
             .sheet(isPresented: $showFiles) {
                 AudioDocumentPicker { urls in
@@ -102,20 +119,6 @@ struct LibraryView: View {
         }
     }
 
-    private var columnHeader: some View {
-        HStack {
-            Text(L10n.songTitle).frame(maxWidth: .infinity, alignment: .leading)
-            Text("歌手").frame(width: 72, alignment: .leading)
-            Text(L10n.venueTag).frame(width: 56, alignment: .leading)
-            Text("时长").frame(width: 44, alignment: .trailing)
-        }
-        .font(.caption2.weight(.semibold))
-        .foregroundStyle(.secondary)
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
-        .accessibilityHidden(true)
-    }
-
     private func play(_ track: Track) {
         if let idx = tracks.firstIndex(where: { $0.id == track.id }) {
             player.play(tracks: tracks, startAt: idx)
@@ -131,51 +134,78 @@ struct TrackRow: View {
     var isPlaying: Bool
 
     var body: some View {
-        HStack(spacing: 10) {
-            ArtworkView(url: track.resolvedArtworkURL, seed: track.title + track.artist, cornerRadius: 6)
-                .frame(width: 44, height: 44)
+        HStack(spacing: 12) {
+            ArtworkView(
+                url: track.resolvedArtworkURL,
+                seed: track.title + track.artist,
+                cornerRadius: 12
+            )
+            .frame(width: LoveSongTheme.Space.rowCover, height: LoveSongTheme.Space.rowCover)
+            .shadow(color: .black.opacity(0.35), radius: 8, y: 3)
 
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 6) {
                     if isCurrent {
                         Image(systemName: isPlaying ? "waveform" : "pause.fill")
-                            .font(.caption2)
-                            .foregroundStyle(Color.accentColor)
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(LoveSongTheme.spotlight)
                     }
                     Text(track.title)
-                        .font(.body.weight(isCurrent ? .semibold : .regular))
-                        .foregroundStyle(isCurrent ? Color.accentColor : .primary)
+                        .font(LoveSongTheme.Font.rowTitle)
+                        .foregroundStyle(isCurrent ? LoveSongTheme.spotlight : LoveSongTheme.textPrimary)
                         .lineLimit(1)
                 }
-                Text(track.artist)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                HStack(spacing: 8) {
+                    Text(track.artist)
+                        .font(LoveSongTheme.Font.rowCaption)
+                        .foregroundStyle(LoveSongTheme.textSecondary)
+                        .lineLimit(1)
+                    if !track.venueTag.isEmpty {
+                        VenueChip(text: track.venueTag, compact: true)
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text(track.venueTag.isEmpty ? "—" : track.venueTag)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .frame(width: 56, alignment: .leading)
-
             Text(TimeFormat.duration(track.duration))
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
-                .frame(width: 44, alignment: .trailing)
+                .font(LoveSongTheme.Font.time)
+                .foregroundStyle(LoveSongTheme.textTertiary)
         }
         .padding(.vertical, 2)
     }
 }
 
 struct EmptyLibraryView: View {
+    var onFiles: () -> Void
+    var onWifi: () -> Void
+
     var body: some View {
-        ContentUnavailableView {
-            Label(L10n.emptyLibraryTitle, systemImage: "music.note.house")
-        } description: {
-            Text(L10n.emptyLibrarySubtitle)
+        VStack(spacing: 18) {
+            Spacer()
+            VStack(spacing: 10) {
+                Text(L10n.emptyLibraryTitle)
+                    .font(LoveSongTheme.Font.emptyTitle)
+                    .foregroundStyle(LoveSongTheme.textPrimary)
+                Text(L10n.emptyLibrarySubtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(LoveSongTheme.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 28)
+            }
+            Button(action: onFiles) {
+                Text(L10n.emptyLibraryAction)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(LoveSongTheme.stageBackground)
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 12)
+                    .background(LoveSongTheme.spotlight, in: Capsule())
+            }
+            .padding(.top, 4)
+            QuietImportBar(onFiles: onFiles, onWifi: onWifi)
+                .padding(.horizontal, LoveSongTheme.Space.screen)
+                .padding(.top, 8)
+            Spacer()
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

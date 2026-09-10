@@ -10,7 +10,9 @@ enum L10n {
     static let searchPrompt = "搜索歌名、歌手或现场"
     static let emptyLibraryTitle = "还没有歌曲"
     static let emptyLibrarySubtitle = "从文件、隔空投送或同一 Wi‑Fi 网页上传音频。支持 mp3 / m4a / aac / wav / flac。"
-    static let emptyLibraryAction = "导入歌曲"
+    static let wifiImportShort = "Wi‑Fi 导入"
+    static let filesImportShort = "文件"
+    static let emptyLibraryAction = "导入第一首歌"
 
     static let unknownTitle = "未知标题"
     static let unknownArtist = "未知艺术家"

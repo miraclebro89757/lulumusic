@@ -1,42 +1,11 @@
 import SwiftUI
 
 enum AppTheme {
-    static let accent = Color.accentColor
-    static let rose = Color(red: 0.95, green: 0.38, blue: 0.42)
-    static let amber = Color(red: 0.95, green: 0.72, blue: 0.35)
-    static let stageBlack = Color(red: 0.04, green: 0.03, blue: 0.05)
-    static let stagePurple = Color(red: 0.22, green: 0.08, blue: 0.28)
-
-    static var concertBackground: LinearGradient {
-        LinearGradient(
-            colors: [stagePurple, stageBlack, Color.black],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-    }
-
-    static var artworkGradient: LinearGradient {
-        LinearGradient(
-            colors: [stagePurple, rose],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
+    static var accent: Color { LoveSongTheme.spotlight }
+    static var stageBlack: Color { LoveSongTheme.stageBackground }
 
     static func hashGradient(for seed: String) -> LinearGradient {
-        var hasher = Hasher()
-        hasher.combine(seed)
-        let value = abs(hasher.finalize())
-        let hue1 = Double(value % 360) / 360.0
-        let hue2 = Double((value / 7) % 360) / 360.0
-        return LinearGradient(
-            colors: [
-                Color(hue: hue1, saturation: 0.55, brightness: 0.45),
-                Color(hue: hue2, saturation: 0.70, brightness: 0.62)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        LoveSongTheme.hashGradient(for: seed)
     }
 }
 

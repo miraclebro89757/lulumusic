@@ -90,6 +90,8 @@ def test_project_wires_tests() -> None:
     pbx = read("LuluMusic/LuluMusic.xcodeproj/project.pbxproj")
     check("LoveSongTests" in pbx, "test target")
     check("DanmakuCore.swift" in pbx, "core in pbx")
+    check("LoveSongTheme.swift" in pbx, "concert theme tokens in pbx")
+    check("StageComponents.swift" in pbx, "shared stage chrome in pbx")
     check("RepeatMode.swift" not in pbx, "repeat-all type removed")
     scheme = read("LuluMusic/LuluMusic.xcodeproj/xcshareddata/xcschemes/LoveSong.xcscheme")
     check("LoveSongTests.xctest" in scheme, "scheme runs tests")
