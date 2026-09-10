@@ -91,7 +91,7 @@ Xcode：**Product › Test**（⌘U），scheme **LoveSong**。
 
 ## 视觉（演唱会舞台）
 
-深色优先：舞台近黑 `#0A0A0C`、抬升面 `#141418`、追光橙 `#FF8A3D`。Token 在 `Theme/LoveSongTheme.swift`。播放控件（58pt 播放 / 46pt 切歌、6pt 胶囊进度、玻璃运输条）在 `Views/PlayerChrome.swift`；曲库列表保持不透明，玻璃只用在 Tab / MiniPlayer / 播放器控件。封面双层：全屏模糊 bleed + 前景锐利封面，弹幕叠在封面上。iOS 26 使用 `tabBarMinimizeBehavior(.onScrollDown)` + `tabViewBottomAccessory`；更早系统回落到自定义玻璃胶囊 MiniPlayer。Scheme / target 未改： **LoveSong** / **LuluMusic**。
+深色优先：舞台近黑 `#0A0A0C`、追光橙 `#FF8A3D`。大封面 ZStack 舞台 + 封面色 LinearGradient；弹幕叠在封面上。播放页波形细进度（可选封面平均色，播放键仍为暖橙）。玻璃卡片约 24pt 圆角。MiniPlayer 为底部 `.thinMaterial` 胶囊，点按 morph 到全屏播放器。弹幕输入为可上拖的 ultraThinMaterial 胶囊（安全区感知，不是社交层）。iOS 26 Tab accessory，更早系统回落自定义胶囊。Scheme / target 未改。
 
 ---
 

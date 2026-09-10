@@ -31,31 +31,26 @@ struct ConcertStageBackground: View {
     var body: some View {
         ZStack {
             LoveSongTheme.stageBackground
-            Group {
-                if let url, let image = UIImage(contentsOfFile: url.path) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                        .blur(radius: 54)
-                        .saturation(1.55)
-                        .scaleEffect(1.22)
-                } else {
-                    LoveSongTheme.hashGradient(for: seed)
-                }
+            CoverPalette.atmosphere(url: url, seed: seed)
+            if let url, let image = UIImage(contentsOfFile: url.path) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .blur(radius: 56)
+                    .saturation(1.5)
+                    .scaleEffect(1.24)
+                    .opacity(0.42)
             }
-            .opacity(0.78)
-            .overlay {
-                LinearGradient(
-                    colors: [
-                        LoveSongTheme.stageBackground.opacity(0.08),
-                        LoveSongTheme.stageBackground.opacity(0.45),
-                        LoveSongTheme.stageBackground.opacity(0.92)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            }
-            .overlay(LoveSongTheme.dim)
+            LinearGradient(
+                colors: [
+                    LoveSongTheme.stageBackground.opacity(0.12),
+                    LoveSongTheme.stageBackground.opacity(0.55),
+                    LoveSongTheme.stageBackground.opacity(0.94)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            LoveSongTheme.dim
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)

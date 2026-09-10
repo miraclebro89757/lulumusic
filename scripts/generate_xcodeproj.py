@@ -43,6 +43,7 @@ FILES = [
     ("Representables", "AudioDocumentPicker.swift", True),
     ("Representables", "AppleMusicPicker.swift", True),
     ("Views", "ArtworkView.swift", True),
+    ("Views", "CoverPalette.swift", True),
     ("Views", "StageComponents.swift", True),
     ("Views", "PlayerChrome.swift", True),
     ("Views", "MiniPlayerBar.swift", True),

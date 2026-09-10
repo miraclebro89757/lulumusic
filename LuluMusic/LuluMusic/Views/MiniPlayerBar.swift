@@ -46,15 +46,16 @@ struct MiniPlayerBar: View {
                         diameter: PlayerChrome.miniPlayDiameter,
                         action: { player.togglePlayPause() }
                     )
+                    .modifier(NowPlayingPlayMatch(isSource: coverIsSource))
                 }
 
                 MiniProgressHint(current: player.currentTime, duration: player.duration)
             }
-            .padding(.horizontal, style == .systemAccessory ? 10 : 12)
+            .padding(.horizontal, style == .systemAccessory ? 10 : 14)
             .padding(.vertical, style == .systemAccessory ? 8 : 10)
             .background {
                 if style == .fallbackDock {
-                    Capsule().fill(.ultraThinMaterial)
+                    Capsule().fill(.thinMaterial)
                 }
             }
             .overlay {
@@ -62,8 +63,9 @@ struct MiniPlayerBar: View {
                     Capsule().stroke(LoveSongTheme.hairline, lineWidth: 1)
                 }
             }
+            .shadow(color: style == .fallbackDock ? .black.opacity(0.35) : .clear, radius: 16, y: 6)
             .padding(.horizontal, style == .fallbackDock ? 12 : 0)
-            .padding(.bottom, style == .fallbackDock ? 6 : 0)
+            .padding(.bottom, style == .fallbackDock ? 8 : 0)
         }
     }
 

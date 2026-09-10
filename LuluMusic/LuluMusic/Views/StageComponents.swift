@@ -27,11 +27,12 @@ struct StageSurface<Content: View>: View {
         content()
             .padding(padded ? 16 : 0)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(LoveSongTheme.stageElevated, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .background(LoveSongTheme.stageElevated, in: RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous)
                     .stroke(LoveSongTheme.hairline, lineWidth: 1)
             )
+            .shadow(color: .black.opacity(0.28), radius: 16, y: 8)
     }
 }
 

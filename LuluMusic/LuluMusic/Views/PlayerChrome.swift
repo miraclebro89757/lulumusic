@@ -6,8 +6,10 @@ enum PlayerChrome {
     static let miniPlayDiameter: CGFloat = 36
     static let scrubberHeight: CGFloat = 6
     static let miniScrubberHeight: CGFloat = 4
-    static let glassRadius: CGFloat = 20
+    static let glassRadius: CGFloat = 24
+    static let coverRadius: CGFloat = 24
     static let coverMatchID = "nowPlayingCover"
+    static let playMatchID = "nowPlayingPlay"
 }
 
 enum AppTab: Hashable {
@@ -44,6 +46,26 @@ struct NowPlayingCoverMatch: ViewModifier {
             content.matchedGeometryEffect(
                 id: PlayerChrome.coverMatchID,
                 in: concertNamespace,
+                properties: .frame,
+                isSource: isSource
+            )
+        } else {
+            content
+        }
+    }
+}
+
+struct NowPlayingPlayMatch: ViewModifier {
+    var isSource: Bool
+
+    @Environment(\.concertNamespace) private var concertNamespace
+
+    func body(content: Content) -> some View {
+        if let concertNamespace {
+            content.matchedGeometryEffect(
+                id: PlayerChrome.playMatchID,
+                in: concertNamespace,
+                properties: .frame,
                 isSource: isSource
             )
         } else {
@@ -112,11 +134,10 @@ struct SkipControlButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.system(size: diameter * 0.34, weight: .semibold))
+                .font(.system(size: diameter * 0.38, weight: .semibold))
                 .foregroundStyle(LoveSongTheme.textPrimary)
                 .frame(width: diameter, height: diameter)
-                .background(.ultraThinMaterial, in: Circle())
-                .overlay(Circle().stroke(LoveSongTheme.hairline, lineWidth: 1))
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -148,6 +169,7 @@ struct PlayerTransport: View {
     var onPrevious: () -> Void
     var onPlayPause: () -> Void
     var onNext: () -> Void
+    var playIsSource: Bool = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -170,6 +192,7 @@ struct PlayerTransport: View {
                 diameter: PlayerChrome.playDiameter,
                 action: onPlayPause
             )
+            .modifier(NowPlayingPlayMatch(isSource: playIsSource))
             .padding(.horizontal, 16)
 
             SkipControlButton(systemName: "forward.fill", action: onNext)
@@ -178,9 +201,17 @@ struct PlayerTransport: View {
             Spacer(minLength: 8)
             Color.clear.frame(width: 40, height: 40)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous))
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background {
+            RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous)
+                        .fill(Color.black.opacity(0.22))
+                }
+                .shadow(color: .black.opacity(0.32), radius: 18, y: 10)
+        }
         .overlay(
             RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous)
                 .stroke(LoveSongTheme.hairline, lineWidth: 1)
@@ -193,11 +224,14 @@ struct ConcertScrubber: View {
     var current: TimeInterval
     var duration: TimeInterval
     var enabled: Bool = true
+    var seed: String = ""
+    var accent: Color = LoveSongTheme.spotlight
     var onSeek: (TimeInterval) -> Void
 
     @State private var dragging = false
     @State private var dragValue: TimeInterval = 0
 
+    private let barCount = 52
     private var shown: TimeInterval { dragging ? dragValue : current }
     private var span: TimeInterval { max(duration, 0.1) }
     private var fraction: CGFloat {
@@ -207,26 +241,20 @@ struct ConcertScrubber: View {
     var body: some View {
         VStack(spacing: 8) {
             GeometryReader { geo in
-                let thumb: CGFloat = 14
-                let bar = PlayerChrome.scrubberHeight
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(LoveSongTheme.separator)
-                        .frame(height: bar)
-                    Capsule()
-                        .fill(LoveSongTheme.spotlight)
-                        .frame(width: max(bar, geo.size.width * fraction), height: bar)
-                    Circle()
-                        .fill(LoveSongTheme.spotlight)
-                        .frame(width: thumb, height: thumb)
-                        .shadow(color: LoveSongTheme.spotlight.opacity(0.5), radius: 6)
-                        .offset(x: max(0, min(geo.size.width - thumb, geo.size.width * fraction - thumb / 2)))
+                let heights = Self.bars(seed: seed, count: barCount)
+                HStack(alignment: .center, spacing: 2) {
+                    ForEach(0..<barCount, id: \.self) { index in
+                        let played = CGFloat(index) / CGFloat(barCount) <= fraction
+                        Capsule()
+                            .fill(played ? accent : LoveSongTheme.textTertiary.opacity(0.42))
+                            .frame(height: max(4, geo.size.height * heights[index]))
+                    }
                 }
-                .frame(maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 .contentShape(Rectangle())
                 .gesture(drag(in: geo.size.width))
             }
-            .frame(height: 22)
+            .frame(height: 28)
             .disabled(!enabled)
 
             HStack {
@@ -236,6 +264,17 @@ struct ConcertScrubber: View {
             }
             .font(LoveSongTheme.Font.time)
             .foregroundStyle(LoveSongTheme.textTertiary)
+        }
+    }
+
+    private static func bars(seed: String, count: Int) -> [CGFloat] {
+        var hasher = Hasher()
+        hasher.combine(seed)
+        var value = hasher.finalize()
+        return (0..<count).map { i in
+            value = value &* 16_777_619 &+ i
+            let n = Int(UInt(bitPattern: value) % 100)
+            return 0.26 + CGFloat(n) / 100 * 0.74
         }
     }
 
@@ -278,39 +317,71 @@ struct GlassDanmakuComposer: View {
     var focused: FocusState<Bool>.Binding
     var onSend: () -> Void
 
+    @State private var lift: CGFloat = 0
+    @GestureState private var dragLift: CGFloat = 0
+
     var body: some View {
-        HStack(spacing: 10) {
-            TextField(L10n.danmakuPlaceholder, text: $text)
-                .textFieldStyle(.plain)
-                .font(.subheadline)
-                .foregroundStyle(LoveSongTheme.textPrimary)
-                .focused(focused)
-                .submitLabel(.send)
-                .onSubmit(onSend)
-            Button(action: onSend) {
-                Text(L10n.danmakuSend)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(LoveSongTheme.stageBackground)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(LoveSongTheme.spotlight, in: Capsule())
+        VStack(spacing: 8) {
+            Capsule()
+                .fill(Color.white.opacity(0.32))
+                .frame(width: 36, height: 4)
+                .padding(.top, 6)
+                .padding(.bottom, 2)
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
+                .gesture(drag, including: focused.wrappedValue ? .none : .gesture)
+                .accessibilityHidden(true)
+            HStack(spacing: 10) {
+                TextField(L10n.danmakuPlaceholder, text: $text)
+                    .textFieldStyle(.plain)
+                    .font(.subheadline)
+                    .foregroundStyle(LoveSongTheme.textPrimary)
+                    .focused(focused)
+                    .submitLabel(.send)
+                    .onSubmit(onSend)
+                Button(action: onSend) {
+                    Text(L10n.danmakuSend)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(LoveSongTheme.stageBackground)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(LoveSongTheme.spotlight, in: Capsule())
+                }
+                .disabled(!enabled || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .opacity(enabled && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 1 : 0.35)
             }
-            .disabled(!enabled || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .opacity(enabled && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 1 : 0.35)
+            .padding(.horizontal, 14)
+            .padding(.bottom, 10)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
         .background {
-            RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous)
+            Capsule(style: .continuous)
                 .fill(.ultraThinMaterial)
                 .overlay {
-                    RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous)
-                        .fill(LoveSongTheme.danmakuBarFill)
+                    Capsule(style: .continuous)
+                        .fill(LoveSongTheme.danmakuBarFill.opacity(0.55))
                 }
         }
         .overlay(
-            RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous)
+            Capsule(style: .continuous)
                 .stroke(LoveSongTheme.hairline, lineWidth: 1)
         )
+        .offset(y: focused.wrappedValue ? 0 : lift + dragLift)
+        .onChange(of: focused.wrappedValue) { _, on in
+            if on {
+                withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) { lift = 0 }
+            }
+        }
+        .animation(.spring(response: 0.32, dampingFraction: 0.86), value: lift)
+    }
+
+    private var drag: some Gesture {
+        DragGesture(minimumDistance: 8)
+            .updating($dragLift) { value, state, _ in
+                state = min(20, max(-150, value.translation.height))
+            }
+            .onEnded { value in
+                let next = min(0, max(-150, lift + value.translation.height))
+                lift = next > -20 ? 0 : next
+            }
     }
 }

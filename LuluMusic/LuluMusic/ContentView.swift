@@ -14,7 +14,7 @@ struct ContentView: View {
             tabRoot
             if player.isFullPlayerPresented {
                 FullPlayerOverlay()
-                    .transition(.opacity)
+                    .transition(.identity)
                     .zIndex(2)
             }
         }

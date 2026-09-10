@@ -10,10 +10,11 @@ struct PlayerView: View {
     @State private var draft = ""
     @State private var inspected: FlyingDanmaku?
     @FocusState private var danmakuFocused: Bool
+    @State private var chromeReady = false
 
     var body: some View {
         GeometryReader { proxy in
-            let artworkSide = min(proxy.size.width - 48, proxy.size.height * 0.42)
+            let artworkSide = min(proxy.size.width - 24, proxy.size.height * 0.54)
             ZStack {
                 ConcertStageBackground(
                     url: player.current?.artworkURL,
@@ -23,25 +24,30 @@ struct PlayerView: View {
                 VStack(spacing: 0) {
                     header
                         .padding(.horizontal, LoveSongTheme.Space.screen)
-                        .padding(.top, 6)
+                        .padding(.top, 4)
+                        .opacity(chromeOpacity)
 
-                    Spacer(minLength: 16)
+                    Spacer(minLength: 8)
 
                     coverStack(side: artworkSide)
-                        .padding(.horizontal, LoveSongTheme.Space.screen)
+                        .padding(.horizontal, 12)
 
-                    Spacer(minLength: 22)
+                    Spacer(minLength: 14)
 
                     metadata
                         .padding(.horizontal, LoveSongTheme.Space.screen)
+                        .opacity(chromeOpacity)
 
                     ConcertScrubber(
                         current: player.currentTime,
                         duration: player.duration,
-                        enabled: player.current != nil
+                        enabled: player.current != nil,
+                        seed: (player.current?.title ?? "") + (player.current?.artist ?? ""),
+                        accent: CoverPalette.waveformTint(from: player.current?.artworkURL)
                     ) { player.seek(to: $0) }
                     .padding(.horizontal, LoveSongTheme.Space.screen)
-                    .padding(.top, 20)
+                    .padding(.top, 14)
+                    .opacity(chromeOpacity)
 
                     PlayerTransport(
                         isPlaying: player.isPlaying,
@@ -51,12 +57,14 @@ struct PlayerView: View {
                         onMode: { player.cyclePlaybackMode() },
                         onPrevious: { player.playPrevious() },
                         onPlayPause: { player.togglePlayPause() },
-                        onNext: { player.playNext() }
+                        onNext: { player.playNext() },
+                        playIsSource: coverIsSource
                     )
                     .padding(.horizontal, LoveSongTheme.Space.screen)
-                    .padding(.top, 16)
+                    .padding(.top, 12)
+                    .opacity(chromeOpacity)
 
-                    Spacer(minLength: 8)
+                    Spacer(minLength: 4)
                 }
                 .padding(.bottom, 8)
             }
@@ -71,9 +79,18 @@ struct PlayerView: View {
             )
             .padding(.horizontal, LoveSongTheme.Space.screen)
             .padding(.bottom, 6)
+            .opacity(chromeOpacity)
         }
         .foregroundStyle(LoveSongTheme.textPrimary)
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            reloadDanmakuCatalog()
+            if showsDismiss {
+                withAnimation(.easeOut(duration: 0.28).delay(0.05)) { chromeReady = true }
+            } else {
+                chromeReady = true
+            }
+        }
         .onChange(of: player.current?.id) { _, _ in
             reloadDanmakuCatalog()
         }
@@ -86,7 +103,6 @@ struct PlayerView: View {
             player.persistResume()
             if enabled { reloadDanmakuCatalog() } else { runtime.flying = [] }
         }
-        .onAppear { reloadDanmakuCatalog() }
         .alert(
             inspected?.record.text ?? "",
             isPresented: Binding(
@@ -100,6 +116,10 @@ struct PlayerView: View {
                 Text("\(RelativeDateFormat.string(from: item.record.createdAt))\n\(TimeFormat.duration(TimeInterval(item.record.timestampMS) / 1000))")
             }
         }
+    }
+
+    private var chromeOpacity: Double {
+        showsDismiss ? (chromeReady ? 1 : 0) : 1
     }
 
     private var coverIsSource: Bool {
@@ -139,7 +159,7 @@ struct PlayerView: View {
         ArtworkView(
             url: player.current?.artworkURL,
             seed: (player.current?.title ?? L10n.noTrack) + (player.current?.artist ?? ""),
-            cornerRadius: 18
+            cornerRadius: PlayerChrome.coverRadius
         )
         .frame(width: side, height: side)
         .modifier(NowPlayingCoverMatch(isSource: coverIsSource))
@@ -148,7 +168,7 @@ struct PlayerView: View {
                 DanmakuOverlay(items: runtime.flying, size: CGSize(width: side, height: side)) { item in
                     inspected = item
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: PlayerChrome.coverRadius, style: .continuous))
             }
         }
         .shadow(color: LoveSongTheme.coverShadow, radius: 28, y: 16)
