@@ -18,7 +18,7 @@ struct PlaybackItem: Identifiable, Hashable, Sendable {
         artist = track.artist
         album = track.album
         venueTag = track.venueTag
-        duration = track.duration
+        duration = TrackDuration.playbackSeconds(fromRaw: track.duration)
         fileURL = track.resolvedFileURL
         artworkURL = track.resolvedArtworkURL
         lastPositionMS = track.lastPositionMS

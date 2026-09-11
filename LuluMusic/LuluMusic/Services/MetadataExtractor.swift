@@ -12,7 +12,7 @@ struct ExtractedMetadata: Sendable {
 
 enum MetadataExtractor {
     static func extract(from url: URL, fallbackName: String) async -> ExtractedMetadata {
-        let asset = AVURLAsset(url: url)
+        let asset = TrackDuration.preciseAsset(url: url)
         var title = sanitizedTitle(from: fallbackName)
         var artist = L10n.unknownArtist
         var album = L10n.unknownAlbum
@@ -21,11 +21,15 @@ enum MetadataExtractor {
 
         do {
             let cmDuration = try await asset.load(.duration)
-            if cmDuration.isNumeric && !cmDuration.isIndefinite {
-                duration = cmDuration.seconds
-            }
+            duration = TrackDuration.playbackSeconds(from: cmDuration)
         } catch {
             duration = 0
+        }
+        if duration <= 0 {
+            duration = await audioTrackDuration(from: asset)
+        }
+        if duration <= 0 {
+            duration = await id3TLENDuration(from: asset)
         }
 
         do {
@@ -64,6 +68,33 @@ enum MetadataExtractor {
             duration: duration,
             artworkJPEG: artwork
         )
+    }
+
+    private static func audioTrackDuration(from asset: AVURLAsset) async -> TimeInterval {
+        guard let tracks = try? await asset.loadTracks(withMediaType: .audio),
+              let track = tracks.first,
+              let range = try? await track.load(.timeRange) else { return 0 }
+        return TrackDuration.playbackSeconds(from: range.duration)
+    }
+
+    /// ID3 TLEN is milliseconds as a numeric string.
+    private static func id3TLENDuration(from asset: AVURLAsset) async -> TimeInterval {
+        guard let items = try? await asset.load(.metadata) else { return 0 }
+        let lengths = AVMetadataItem.metadataItems(from: items, filteredByIdentifier: .id3MetadataLength)
+        for item in lengths {
+            if let string = try? await item.load(.stringValue),
+               let millis = Double(string.trimmingCharacters(in: .whitespacesAndNewlines)),
+               millis > 0 {
+                return TrackDuration.playbackSeconds(fromRaw: millis / 1000)
+            }
+            if let number = try? await item.load(.numberValue) {
+                let millis = number.doubleValue
+                if millis > 0 {
+                    return TrackDuration.playbackSeconds(fromRaw: millis / 1000)
+                }
+            }
+        }
+        return 0
     }
 
     static func sanitizedTitle(from fileName: String) -> String {

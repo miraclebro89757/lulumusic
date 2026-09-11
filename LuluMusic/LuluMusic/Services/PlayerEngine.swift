@@ -42,6 +42,10 @@ final class PlayerEngine {
     private var remoteConfigured = false
     private var shouldResumeAfterInterruption = false
     private var lastResumePositionMS = -1
+    private var isSeeking = false
+    private var seekGeneration = 0
+    private var statusObserver: NSKeyValueObservation?
+    private var durationObserver: NSKeyValueObservation?
 
     init() {
         AudioSessionController.activatePlayback()
@@ -156,16 +160,40 @@ final class PlayerEngine {
     }
 
     func livePlayerMilliseconds() -> Int {
-        snapshotFromAVPlayer()
+        if !isSeeking {
+            snapshotFromAVPlayer()
+        }
         return currentTimeMS
     }
 
     func seek(to time: TimeInterval) {
-        let cm = CMTime(seconds: max(0, time), preferredTimescale: 600)
-        player?.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero)
-        currentTime = max(0, time)
+        let normalized = TrackDuration.playbackSeconds(fromRaw: time)
+        let clamped = duration > 0 ? min(normalized, duration) : normalized
+        let target = max(0, clamped)
+        isSeeking = true
+        seekGeneration += 1
+        let generation = seekGeneration
+        currentTime = target
         persistResume()
         publishNowPlaying()
+        let cm = CMTime(seconds: target, preferredTimescale: 600)
+        guard let player else {
+            isSeeking = false
+            return
+        }
+        player.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] finished in
+            Task { @MainActor [weak self] in
+                guard let self, generation == self.seekGeneration else { return }
+                self.isSeeking = false
+                if finished {
+                    self.snapshotFromAVPlayer()
+                } else {
+                    self.currentTime = target
+                }
+                self.persistResume()
+                self.publishNowPlaying()
+            }
+        }
     }
 
     func cyclePlaybackMode() {
@@ -259,6 +287,11 @@ final class PlayerEngine {
         isPlaying = false
         currentTime = 0
         duration = 0
+        isSeeking = false
+        statusObserver?.invalidate()
+        durationObserver?.invalidate()
+        statusObserver = nil
+        durationObserver = nil
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
@@ -278,8 +311,14 @@ final class PlayerEngine {
             NotificationCenter.default.removeObserver(endObserver)
             self.endObserver = nil
         }
+        statusObserver?.invalidate()
+        durationObserver?.invalidate()
+        statusObserver = nil
+        durationObserver = nil
+        isSeeking = false
 
-        let playerItem = AVPlayerItem(url: item.fileURL)
+        let asset = TrackDuration.preciseAsset(url: item.fileURL)
+        let playerItem = AVPlayerItem(asset: asset)
         if player == nil {
             player = AVPlayer(playerItem: playerItem)
             player?.actionAtItemEnd = .pause
@@ -287,8 +326,9 @@ final class PlayerEngine {
             player?.replaceCurrentItem(with: playerItem)
         }
 
-        duration = item.duration
+        duration = TrackDuration.playbackSeconds(fromRaw: item.duration)
         currentTime = 0
+        observeItemTiming(playerItem)
 
         let interval = CMTime(seconds: 0.05, preferredTimescale: 600)
         timeObserver = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
@@ -319,16 +359,39 @@ final class PlayerEngine {
         publishNowPlaying()
     }
 
-    private func applyAVPlayerTime(_ observed: CMTime) {
-        if let live = player?.currentTime(), live.isNumeric {
-            let seconds = live.seconds
-            currentTime = seconds.isFinite ? max(0, seconds) : 0
-        } else if observed.isNumeric {
-            let seconds = observed.seconds
-            currentTime = seconds.isFinite ? max(0, seconds) : 0
+    private func observeItemTiming(_ playerItem: AVPlayerItem) {
+        applyItemDuration(playerItem)
+        statusObserver = playerItem.observe(\.status, options: [.initial, .new]) { [weak self] item, _ in
+            Task { @MainActor [weak self] in
+                self?.applyItemDuration(item)
+            }
         }
-        if let d = player?.currentItem?.duration, d.isNumeric, !d.isIndefinite {
-            duration = d.seconds
+        durationObserver = playerItem.observe(\.duration, options: [.new]) { [weak self] item, _ in
+            Task { @MainActor [weak self] in
+                self?.applyItemDuration(item)
+            }
+        }
+    }
+
+    private func applyItemDuration(_ item: AVPlayerItem) {
+        let seconds = TrackDuration.playbackSeconds(from: item.duration)
+        guard seconds > 0 else { return }
+        duration = seconds
+        publishNowPlaying()
+    }
+
+    private func applyAVPlayerTime(_ observed: CMTime) {
+        if !isSeeking {
+            if let live = player?.currentTime(), live.isNumeric {
+                let seconds = live.seconds
+                currentTime = seconds.isFinite ? max(0, seconds) : 0
+            } else if observed.isNumeric {
+                let seconds = observed.seconds
+                currentTime = seconds.isFinite ? max(0, seconds) : 0
+            }
+        }
+        if let item = player?.currentItem {
+            applyItemDuration(item)
         }
         maybePersistResume()
     }

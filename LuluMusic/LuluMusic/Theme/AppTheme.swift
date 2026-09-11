@@ -12,7 +12,8 @@ enum AppTheme {
 enum TimeFormat {
     static func duration(_ time: TimeInterval) -> String {
         guard time.isFinite, time >= 0 else { return L10n.durationUnknown }
-        let total = Int(time.rounded(.towardZero))
+        let seconds = TrackDuration.playbackSeconds(fromRaw: time)
+        let total = Int(seconds.rounded(.towardZero))
         let hours = total / 3600
         let minutes = (total % 3600) / 60
         let seconds = total % 60

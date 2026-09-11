@@ -127,11 +127,39 @@ def test_playback_clock_and_waveform() -> None:
     player = read("LuluMusic/LuluMusic/Services/PlayerEngine.swift")
     check("player?.currentTime()" in player or "player.currentTime()" in player, "live AVPlayer currentTime")
     check("PlaybackClock.milliseconds" in player, "engine uses PlaybackClock")
+    check("isSeeking" in player, "seek suppresses playhead observer")
+    check("seekGeneration" in player, "overlapping scrub seeks")
+    check("player.seek(to: cm" in player or "player?.seek(to: cm" in player, "AVPlayer.seek")
+    check("AVURLAssetPreferPreciseDurationAndTimingKey" in player or "TrackDuration.preciseAsset" in player, "precise item duration")
     chrome = read("LuluMusic/LuluMusic/Views/PlayerChrome.swift")
     check("Hasher()" not in chrome, "no hashed fake waveform")
     check("peaks" in chrome, "scrubber takes real peaks")
+    check("highPriorityGesture" in chrome, "scrubber wins over tab swipe")
+    check("ScrubSeek.command" in chrome, "scrub maps to seek seconds")
+    drag = chrome.split("private func drag")[1].split("struct MiniProgressHint")[0] if "private func drag" in chrome else ""
+    check("onChanged" in drag and "onSeek" in drag, "dragging calls onSeek")
+    check("onEnded" in drag and "onSeek" in drag, "release calls onSeek")
+    check("max(duration, 0.1)" not in chrome, "no fake 0.1s duration span")
     composer = chrome.split("struct GlassDanmakuComposer")[1] if "struct GlassDanmakuComposer" in chrome else ""
     check("DragGesture" not in composer, "fixed danmaku bar, no drag")
+    meta = read("LuluMusic/LuluMusic/Services/MetadataExtractor.swift")
+    check("TrackDuration.preciseAsset" in meta, "import uses precise AVURLAsset")
+    check("TrackDuration.playbackSeconds" in meta, "import stores seconds")
+    check("id3MetadataLength" in meta, "TLEN milliseconds fallback")
+    player_view = read("LuluMusic/LuluMusic/Views/PlayerView.swift")
+    check("player.seek(to:" in player_view, "waveform scrubber wired to PlayerEngine.seek")
+    duration_src = read("LuluMusic/LuluMusic/Core/TrackDuration.swift")
+    check("plausibleMaxSeconds" in duration_src, "ms vs seconds heuristic")
+    check("AVURLAssetPreferPreciseDurationAndTimingKey" in duration_src, "precise duration option")
+    scrub_src = read("LuluMusic/LuluMusic/Core/ScrubSeek.swift")
+    check("shouldSeek" in scrub_src, "scrub command")
+    duration_tests = read("LuluMusic/LoveSongTests/TrackDurationTests.swift")
+    check("testTreatsImplausibleHourLongValuesAsMilliseconds" in duration_tests, "duration unit test")
+    check("testDisplayFormatsSecondsNotMillisecondTicks" in duration_tests, "TimeFormat test")
+    scrub_tests = read("LuluMusic/LoveSongTests/ScrubSeekTests.swift")
+    check("testMapsBarFractionOntoDurationSeconds" in scrub_tests, "scrub mapping test")
+    check("testZeroDurationDoesNotInventATenthSecondSpan" in scrub_tests, "no fake span test")
+    check("testSeekCommandUsesPlayerSeconds" in scrub_tests, "seek command test")
 
 
 def test_wifi_ui_and_plist() -> None:
@@ -196,17 +224,35 @@ def test_project_wires_tests() -> None:
     check("PlayerChrome.swift" in pbx, "shared player chrome in pbx")
     check("CoverPalette.swift" in pbx, "cover atmosphere helper in pbx")
     check("PlaybackClock.swift" in pbx, "PlaybackClock in pbx")
+    check("TrackDuration.swift" in pbx, "TrackDuration in pbx")
+    check("ScrubSeek.swift" in pbx, "ScrubSeek in pbx")
     check("WaveformPeaks.swift" in pbx, "WaveformPeaks in pbx")
     check("AudioWaveformAnalyzer.swift" in pbx, "waveform analyzer in pbx")
     check("LocalNetworkAccess.swift" in pbx, "local network prompt in pbx")
     check("PlaybackClockTests.swift" in pbx, "clock tests in pbx")
     check("WaveformPeaksTests.swift" in pbx, "peak tests in pbx")
+    check("TrackDurationTests.swift" in pbx, "duration tests in pbx")
+    check("ScrubSeekTests.swift" in pbx, "scrub tests in pbx")
     check("QRCodeImage.swift" not in pbx, "QR removed from pbx")
     check("RepeatMode.swift" not in pbx, "repeat-all type removed")
     scheme = read("LuluMusic/LuluMusic.xcodeproj/xcshareddata/xcschemes/LoveSong.xcscheme")
     check("LoveSongTests.xctest" in scheme, "scheme runs tests")
     plist = read("LuluMusic/LuluMusic/Info.plist")
     check("<string>LoveSong</string>" in plist, "display name")
+
+
+def test_duration_and_scrub_algorithms() -> None:
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "test_playback_timing.py")],
+        capture_output=True,
+        text=True,
+    )
+    check(result.returncode == 0, f"playback timing twin: {result.stdout.strip()} {result.stderr.strip()}")
+    time_format = read("LuluMusic/LuluMusic/Theme/AppTheme.swift")
+    check("TrackDuration.playbackSeconds" in time_format, "TimeFormat normalizes units")
 
 
 def main() -> None:
@@ -219,6 +265,7 @@ def main() -> None:
         test_danmaku,
         test_wifi_policy,
         test_playback_clock_and_waveform,
+        test_duration_and_scrub_algorithms,
         test_wifi_ui_and_plist,
         test_no_now_playing_matched_geometry,
         test_project_wires_tests,

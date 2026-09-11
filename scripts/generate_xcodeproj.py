@@ -28,6 +28,8 @@ FILES = [
     ("Core", "WebImportPolicy.swift", True),
     ("Core", "IncomingTransfer.swift", True),
     ("Core", "PlaybackClock.swift", True),
+    ("Core", "TrackDuration.swift", True),
+    ("Core", "ScrubSeek.swift", True),
     ("Core", "WaveformPeaks.swift", True),
     ("Models", "ImportSource.swift", True),
     ("Models", "PlaybackItem.swift", True),
@@ -65,6 +67,8 @@ TEST_FILES = [
     "WebImportPolicyTests.swift",
     "PlaybackClockTests.swift",
     "WaveformPeaksTests.swift",
+    "TrackDurationTests.swift",
+    "ScrubSeekTests.swift",
 ]
 
 ASSETS = "Assets.xcassets"

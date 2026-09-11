@@ -171,9 +171,10 @@ struct ConcertScrubber: View {
 
     private let barCount = 52
     private var shown: TimeInterval { dragging ? dragValue : current }
-    private var span: TimeInterval { max(duration, 0.1) }
     private var fraction: CGFloat {
-        CGFloat(min(1, max(0, shown / span)))
+        let span = TrackDuration.playbackSeconds(fromRaw: duration)
+        guard span > 0 else { return 0 }
+        return CGFloat(min(1, max(0, shown / span)))
     }
 
     private var bars: [Float] {
@@ -188,7 +189,9 @@ struct ConcertScrubber: View {
                 let heights = bars
                 let playhead = WaveformPeakSampler.playheadBarIndex(
                     currentMS: PlaybackClock.milliseconds(fromPlayerSeconds: shown),
-                    durationMS: PlaybackClock.milliseconds(fromPlayerSeconds: duration),
+                    durationMS: PlaybackClock.milliseconds(
+                        fromPlayerSeconds: TrackDuration.playbackSeconds(fromRaw: duration)
+                    ),
                     barCount: barCount
                 )
                 HStack(alignment: .center, spacing: 2) {
@@ -201,7 +204,7 @@ struct ConcertScrubber: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 .contentShape(Rectangle())
-                .gesture(drag(in: geo.size.width))
+                .highPriorityGesture(drag(in: geo.size.width))
             }
             .frame(height: 28)
             .disabled(!enabled)
@@ -220,12 +223,26 @@ struct ConcertScrubber: View {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
                 dragging = true
-                let x = min(max(0, value.location.x), width)
-                dragValue = span * Double(x / max(width, 1))
+                let command = ScrubSeek.command(
+                    x: Double(value.location.x),
+                    width: Double(width),
+                    duration: duration
+                )
+                dragValue = command.seconds
+                if command.shouldSeek {
+                    onSeek(command.seconds)
+                }
             }
             .onEnded { value in
-                let x = min(max(0, value.location.x), width)
-                onSeek(span * Double(x / max(width, 1)))
+                let command = ScrubSeek.command(
+                    x: Double(value.location.x),
+                    width: Double(width),
+                    duration: duration
+                )
+                dragValue = command.seconds
+                if command.shouldSeek {
+                    onSeek(command.seconds)
+                }
                 dragging = false
             }
     }
@@ -237,7 +254,11 @@ struct MiniProgressHint: View {
 
     var body: some View {
         GeometryReader { geo in
-            let fraction = duration > 0 ? min(1, max(0, current / duration)) : 0
+            let fraction = {
+                let span = TrackDuration.playbackSeconds(fromRaw: duration)
+                guard span > 0 else { return CGFloat(0) }
+                return CGFloat(min(1, max(0, current / span)))
+            }()
             ZStack(alignment: .leading) {
                 Capsule().fill(LoveSongTheme.separator)
                 Capsule()

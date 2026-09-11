@@ -89,7 +89,7 @@ final class LibraryService {
             title: meta.title,
             artist: meta.artist,
             album: meta.album,
-            duration: meta.duration,
+            duration: TrackDuration.playbackSeconds(fromRaw: meta.duration),
             relativeFilePath: "Music/\(fileName)",
             relativeArtworkPath: artworkPath,
             source: source,
@@ -247,7 +247,14 @@ final class LibraryService {
             title: title,
             artist: artist,
             album: album,
-            duration: duration > 0 ? duration : (try? await AVURLAsset(url: dest).load(.duration).seconds) ?? 0,
+            duration: {
+                if duration > 0 { return TrackDuration.playbackSeconds(fromRaw: duration) }
+                let asset = TrackDuration.preciseAsset(url: dest)
+                if let cm = try? await asset.load(.duration) {
+                    return TrackDuration.playbackSeconds(from: cm)
+                }
+                return 0
+            }(),
             relativeFilePath: "Music/\(id.uuidString).m4a",
             relativeArtworkPath: artworkPath,
             source: .appleMusic,

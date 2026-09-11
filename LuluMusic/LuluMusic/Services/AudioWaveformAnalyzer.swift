@@ -12,7 +12,7 @@ enum AudioWaveformAnalyzer {
 
     private static func readPeaks(url: URL, barCount: Int) -> [Float] {
         let empty = Array(repeating: Float(0), count: max(1, barCount))
-        let asset = AVURLAsset(url: url)
+        let asset = TrackDuration.preciseAsset(url: url)
         let ready = DispatchSemaphore(value: 0)
         var loadError: NSError?
         asset.loadValuesAsynchronously(forKeys: ["tracks", "duration"]) {
@@ -40,11 +40,16 @@ enum AudioWaveformAnalyzer {
         reader.add(output)
         guard reader.startReading() else { return empty }
 
-        let durationMS = PlaybackClock.milliseconds(fromPlayerSeconds: CMTimeGetSeconds(asset.duration))
+        let durationMS = PlaybackClock.milliseconds(
+            fromPlayerSeconds: TrackDuration.playbackSeconds(from: asset.duration)
+        )
         var peaks = empty
         while let buffer = output.copyNextSampleBuffer() {
             let pts = CMSampleBufferGetPresentationTimeStamp(buffer)
-            let atMS = PlaybackClock.milliseconds(fromPlayerSeconds: CMTimeGetSeconds(pts))
+            let ptsSeconds = pts.seconds
+            let atMS = PlaybackClock.milliseconds(
+                fromPlayerSeconds: ptsSeconds.isFinite ? max(0, ptsSeconds) : 0
+            )
             if let block = CMSampleBufferGetDataBuffer(buffer) {
                 let length = CMBlockBufferGetDataLength(block)
                 var data = Data(count: length)
