@@ -7,14 +7,50 @@ struct VenueChip: View {
     var body: some View {
         Text(text)
             .font(LoveSongTheme.Font.chip)
-            .foregroundStyle(LoveSongTheme.textPrimary)
+            .foregroundStyle(LoveSongTheme.textSecondary)
             .lineLimit(1)
             .padding(.horizontal, compact ? 8 : 11)
             .padding(.vertical, compact ? 3 : 5)
+            .background(.ultraThinMaterial, in: Capsule())
             .overlay(
                 Capsule()
-                    .stroke(LoveSongTheme.spotlight.opacity(0.9), lineWidth: 1)
+                    .stroke(LoveSongTheme.hairline, lineWidth: 1)
             )
+    }
+}
+
+struct VenueGlassStrip: View {
+    var text: String
+    var onOpenLive: () -> Void
+    var onEdit: (() -> Void)? = nil
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "mappin.and.ellipse")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(LoveSongTheme.accent)
+            Text(text.isEmpty ? L10n.venueAdd : text)
+                .font(.subheadline)
+                .foregroundStyle(text.isEmpty ? LoveSongTheme.textTertiary : LoveSongTheme.textPrimary)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(LoveSongTheme.textTertiary)
+        }
+        .padding(.horizontal, 14)
+        .frame(height: 36)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(LoveSongTheme.hairline, lineWidth: 1)
+        )
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onOpenLive)
+        .onLongPressGesture {
+            onEdit?()
+        }
+        .accessibilityLabel(text.isEmpty ? "\(L10n.venueAdd)，仍可进入现场" : "现场标签，\(text)，进入现场")
     }
 }
 
@@ -27,9 +63,9 @@ struct StageSurface<Content: View>: View {
         content()
             .padding(padded ? 16 : 0)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(LoveSongTheme.stageElevated, in: RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous))
+            .background(LoveSongTheme.stageElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .stroke(LoveSongTheme.hairline, lineWidth: 1)
             )
             .shadow(color: .black.opacity(0.28), radius: 16, y: 8)
@@ -46,62 +82,72 @@ struct StageSearchField: View {
             TextField(L10n.searchPrompt, text: $text)
                 .textFieldStyle(.plain)
                 .foregroundStyle(LoveSongTheme.textPrimary)
-                .tint(LoveSongTheme.spotlight)
+                .tint(LoveSongTheme.accent)
             if !text.isEmpty {
                 Button {
                     text = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(LoveSongTheme.textTertiary)
+                        .frame(width: 44, height: 36)
                 }
             }
         }
         .font(.subheadline)
         .padding(.horizontal, 14)
-        .padding(.vertical, 11)
-        .background(LoveSongTheme.stageElevated, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .frame(height: 36)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(LoveSongTheme.hairline, lineWidth: 1)
         )
     }
 }
 
-struct QuietImportBar: View {
-    var onFiles: () -> Void
-    var onWifi: () -> Void
+struct EmptyStateView: View {
+    var systemImage: String
+    var title: String
+    var subtitle: String? = nil
+    var primaryTitle: String
+    var primaryAction: () -> Void
+    var secondaryTitle: String? = nil
+    var secondaryAction: (() -> Void)? = nil
 
     var body: some View {
-        HStack(spacing: 12) {
-            Button(action: onWifi) {
-                HStack(spacing: 8) {
-                    Image(systemName: "wifi")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(LoveSongTheme.spotlight)
-                    Text(L10n.wifiImportShort)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(LoveSongTheme.textSecondary)
-                    Image(systemName: "chevron.right")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(LoveSongTheme.textTertiary)
-                }
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(L10n.importWebButton)
-
-            Spacer(minLength: 8)
-
-            Button(action: onFiles) {
-                HStack(spacing: 6) {
-                    Image(systemName: "folder")
-                    Text(L10n.filesImportShort)
-                }
-                .font(.subheadline.weight(.medium))
+        VStack(spacing: 18) {
+            Spacer(minLength: LoveSongTheme.Space.heroEmpty)
+            Image(systemName: systemImage)
+                .font(.system(size: 48, weight: .regular))
                 .foregroundStyle(LoveSongTheme.textSecondary)
+            Text(title)
+                .font(LoveSongTheme.Font.emptyTitle)
+                .foregroundStyle(LoveSongTheme.textPrimary)
+                .multilineTextAlignment(.center)
+            if let subtitle {
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(LoveSongTheme.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 28)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(L10n.importFilesButton)
+            Button(action: primaryAction) {
+                Text(primaryTitle)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.white)
+                    .frame(minHeight: 48)
+                    .padding(.horizontal, 22)
+                    .background(LoveSongTheme.accent, in: Capsule())
+            }
+            if let secondaryTitle, let secondaryAction {
+                Button(action: secondaryAction) {
+                    Text(secondaryTitle)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(LoveSongTheme.accent)
+                }
+                .buttonStyle(.plain)
+            }
+            Spacer(minLength: LoveSongTheme.Space.heroEmpty)
         }
-        .padding(.vertical, 4)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

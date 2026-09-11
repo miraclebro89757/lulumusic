@@ -1,17 +1,24 @@
 import SwiftUI
 
 enum PlayerChrome {
-    static let playDiameter: CGFloat = 58
-    static let skipDiameter: CGFloat = 46
-    static let miniPlayDiameter: CGFloat = 36
+    static let playDiameter: CGFloat = 56
+    static let skipDiameter: CGFloat = 44
+    static let miniPlayDiameter: CGFloat = 44
     static let scrubberHeight: CGFloat = 6
     static let miniScrubberHeight: CGFloat = 4
-    static let glassRadius: CGFloat = 24
+    static let glassRadius: CGFloat = 16
     static let coverRadius: CGFloat = 24
 }
 
 enum AppTab: Hashable {
-    case library, player
+    case playlist
+    case player
+    case live
+}
+
+@Observable
+final class AppNavigation {
+    var tab: AppTab = .playlist
 }
 
 struct ChromeGlass<Content: View>: View {
@@ -50,11 +57,11 @@ struct SpotlightPlayButton: View {
         Button(action: action) {
             ZStack {
                 Circle()
-                    .fill(LoveSongTheme.spotlight)
-                    .shadow(color: LoveSongTheme.spotlight.opacity(0.38), radius: diameter * 0.22, y: 6)
+                    .fill(LoveSongTheme.accent)
+                    .shadow(color: LoveSongTheme.accent.opacity(0.38), radius: diameter * 0.22, y: 6)
                 Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: diameter * 0.34, weight: .semibold))
-                    .foregroundStyle(LoveSongTheme.stageBackground)
+                    .font(.system(size: min(24, diameter * 0.42), weight: .semibold))
+                    .foregroundStyle(Color.white)
                     .offset(x: isPlaying ? 0 : diameter * 0.02)
             }
             .frame(width: diameter, height: diameter)
@@ -92,11 +99,31 @@ struct GlassCircleButton: View {
             Image(systemName: systemName)
                 .font(.body.weight(.semibold))
                 .foregroundStyle(LoveSongTheme.textPrimary)
-                .frame(width: 36, height: 36)
+                .frame(width: 44, height: 44)
                 .background(.ultraThinMaterial, in: Circle())
                 .overlay(Circle().stroke(LoveSongTheme.hairline, lineWidth: 1))
         }
         .buttonStyle(.plain)
+    }
+}
+
+struct ModeChip: View {
+    var playbackMode: PlaybackMode
+    var title: String
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: playbackMode.systemImage)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(playbackMode == .sequential ? LoveSongTheme.textSecondary : LoveSongTheme.accent)
+                .frame(minWidth: 44, minHeight: 32)
+                .padding(.horizontal, 8)
+                .background(.ultraThinMaterial, in: Capsule())
+                .overlay(Capsule().stroke(LoveSongTheme.hairline, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
     }
 }
 
@@ -112,13 +139,7 @@ struct PlayerTransport: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            Button(action: onMode) {
-                Image(systemName: playbackMode.systemImage)
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(playbackMode == .sequential ? LoveSongTheme.textTertiary : LoveSongTheme.spotlight)
-                    .frame(width: 40, height: 40)
-            }
-            .accessibilityLabel(modeTitle)
+            ModeChip(playbackMode: playbackMode, title: modeTitle, action: onMode)
 
             Spacer(minLength: 8)
 
@@ -137,23 +158,9 @@ struct PlayerTransport: View {
                 .accessibilityLabel("下一首")
 
             Spacer(minLength: 8)
-            Color.clear.frame(width: 40, height: 40)
+            Color.clear.frame(width: 44, height: 32)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background {
-            RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous)
-                        .fill(Color.black.opacity(0.22))
-                }
-                .shadow(color: .black.opacity(0.32), radius: 18, y: 10)
-        }
-        .overlay(
-            RoundedRectangle(cornerRadius: PlayerChrome.glassRadius, style: .continuous)
-                .stroke(LoveSongTheme.hairline, lineWidth: 1)
-        )
+        .padding(.horizontal, 8)
         .disabled(!enabled)
     }
 }
@@ -163,7 +170,7 @@ struct ConcertScrubber: View {
     var duration: TimeInterval
     var peaks: [Float]
     var enabled: Bool = true
-    var accent: Color = LoveSongTheme.spotlight
+    var accent: Color = LoveSongTheme.accent
     var onSeek: (TimeInterval) -> Void
 
     @State private var dragging = false
@@ -198,7 +205,7 @@ struct ConcertScrubber: View {
                     ForEach(0..<barCount, id: \.self) { index in
                         let played = index <= playhead && fraction > 0
                         Capsule()
-                            .fill(played ? accent : LoveSongTheme.textTertiary.opacity(0.42))
+                            .fill(played ? Color.white.opacity(0.90) : Color.white.opacity(0.15))
                             .frame(height: max(4, geo.size.height * CGFloat(0.22 + heights[index] * 0.78)))
                     }
                 }
@@ -208,6 +215,91 @@ struct ConcertScrubber: View {
             }
             .frame(height: 28)
             .disabled(!enabled)
+
+            HStack {
+                Text(TimeFormat.duration(shown))
+                Spacer()
+                Text(TimeFormat.duration(duration))
+            }
+            .font(LoveSongTheme.Font.time)
+            .foregroundStyle(LoveSongTheme.textTertiary)
+        }
+        .accessibilityHidden(true)
+        .overlay(alignment: .center) {
+            Color.clear.accessibilityLabel("进度")
+        }
+    }
+
+    private func drag(in width: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                dragging = true
+                let command = ScrubSeek.command(
+                    x: Double(value.location.x),
+                    width: Double(width),
+                    duration: duration
+                )
+                dragValue = command.seconds
+                if command.shouldSeek {
+                    onSeek(command.seconds)
+                }
+            }
+            .onEnded { value in
+                let command = ScrubSeek.command(
+                    x: Double(value.location.x),
+                    width: Double(width),
+                    duration: duration
+                )
+                dragValue = command.seconds
+                if command.shouldSeek {
+                    onSeek(command.seconds)
+                }
+                dragging = false
+            }
+    }
+}
+
+struct ProgressSeekBar: View {
+    var current: TimeInterval
+    var duration: TimeInterval
+    var enabled: Bool = true
+    var onSeek: (TimeInterval) -> Void
+
+    @State private var dragging = false
+    @State private var dragValue: TimeInterval = 0
+
+    private var shown: TimeInterval { dragging ? dragValue : current }
+    private var fraction: CGFloat {
+        let span = TrackDuration.playbackSeconds(fromRaw: duration)
+        guard span > 0 else { return 0 }
+        return CGFloat(min(1, max(0, shown / span)))
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            GeometryReader { geo in
+                let knob = LoveSongTheme.Space.progressKnob
+                let trackH = LoveSongTheme.Space.progressTrack
+                let x = max(knob / 2, min(geo.size.width - knob / 2, geo.size.width * fraction))
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.white.opacity(0.15))
+                        .frame(height: trackH)
+                    Capsule()
+                        .fill(Color.white.opacity(0.90))
+                        .frame(width: max(trackH, x), height: trackH)
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: dragging ? knob + 4 : knob, height: dragging ? knob + 4 : knob)
+                        .offset(x: x - knob / 2)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .contentShape(Rectangle())
+                .highPriorityGesture(drag(in: geo.size.width))
+            }
+            .frame(height: 28)
+            .disabled(!enabled)
+            .opacity(enabled ? 1 : 0.4)
 
             HStack {
                 Text(TimeFormat.duration(shown))
@@ -262,7 +354,7 @@ struct MiniProgressHint: View {
             ZStack(alignment: .leading) {
                 Capsule().fill(LoveSongTheme.separator)
                 Capsule()
-                    .fill(LoveSongTheme.spotlight)
+                    .fill(LoveSongTheme.accent)
                     .frame(width: max(PlayerChrome.miniScrubberHeight, geo.size.width * fraction))
             }
         }
@@ -275,6 +367,7 @@ struct GlassDanmakuComposer: View {
     var enabled: Bool
     var focused: FocusState<Bool>.Binding
     var onSend: () -> Void
+    var onSmile: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 10) {
@@ -284,30 +377,45 @@ struct GlassDanmakuComposer: View {
                 .foregroundStyle(LoveSongTheme.textPrimary)
                 .focused(focused)
                 .submitLabel(.send)
+                .disabled(!enabled)
                 .onSubmit(onSend)
+                .accessibilityLabel(L10n.danmakuPlaceholder)
+            if let onSmile {
+                Button(action: onSmile) {
+                    Image(systemName: "face.smiling")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(LoveSongTheme.textPrimary)
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.plain)
+                .disabled(!enabled)
+                .accessibilityLabel(L10n.danmakuSmile)
+            }
             Button(action: onSend) {
                 Text(L10n.danmakuSend)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(LoveSongTheme.stageBackground)
+                    .foregroundStyle(Color.white)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
-                    .background(LoveSongTheme.spotlight, in: Capsule())
+                    .background(LoveSongTheme.accent, in: Capsule())
             }
             .disabled(!enabled || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .opacity(enabled && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 1 : 0.35)
+            .accessibilityLabel(L10n.danmakuSend)
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
+        .frame(minHeight: 48)
         .background {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .overlay {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(LoveSongTheme.danmakuBarFill.opacity(0.55))
                 }
         }
         .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(LoveSongTheme.hairline, lineWidth: 1)
         )
     }

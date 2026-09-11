@@ -20,36 +20,39 @@
 		7FFC00000000000000000260 /* ResumeState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000006C /* ResumeState.swift */; };
 		7FFC00000000000000000261 /* LibrarySearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000006D /* LibrarySearch.swift */; };
 		7FFC00000000000000000262 /* DanmakuCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000006E /* DanmakuCore.swift */; };
-		7FFC00000000000000000263 /* WebImportPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000006F /* WebImportPolicy.swift */; };
-		7FFC00000000000000000264 /* IncomingTransfer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000070 /* IncomingTransfer.swift */; };
-		7FFC00000000000000000265 /* PlaybackClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000071 /* PlaybackClock.swift */; };
-		7FFC00000000000000000266 /* TrackDuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000072 /* TrackDuration.swift */; };
-		7FFC00000000000000000267 /* ScrubSeek.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000073 /* ScrubSeek.swift */; };
-		7FFC00000000000000000268 /* WaveformPeaks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000074 /* WaveformPeaks.swift */; };
-		7FFC00000000000000000269 /* ImportSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000075 /* ImportSource.swift */; };
-		7FFC0000000000000000026A /* PlaybackItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000076 /* PlaybackItem.swift */; };
-		7FFC0000000000000000026B /* Track.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000077 /* Track.swift */; };
-		7FFC0000000000000000026C /* DanmakuComment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000078 /* DanmakuComment.swift */; };
-		7FFC0000000000000000026D /* MetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000079 /* MetadataExtractor.swift */; };
-		7FFC0000000000000000026E /* AudioSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007A /* AudioSessionController.swift */; };
-		7FFC0000000000000000026F /* LocalIPAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007B /* LocalIPAddress.swift */; };
-		7FFC00000000000000000270 /* LocalNetworkAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007C /* LocalNetworkAccess.swift */; };
-		7FFC00000000000000000271 /* LibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007D /* LibraryService.swift */; };
-		7FFC00000000000000000272 /* DanmakuService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007E /* DanmakuService.swift */; };
-		7FFC00000000000000000273 /* NowPlayingCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007F /* NowPlayingCenter.swift */; };
-		7FFC00000000000000000274 /* PlayerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000080 /* PlayerEngine.swift */; };
-		7FFC00000000000000000275 /* WebUploadServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000081 /* WebUploadServer.swift */; };
-		7FFC00000000000000000276 /* AudioWaveformAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000082 /* AudioWaveformAnalyzer.swift */; };
-		7FFC00000000000000000277 /* AudioDocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000083 /* AudioDocumentPicker.swift */; };
-		7FFC00000000000000000278 /* AppleMusicPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000084 /* AppleMusicPicker.swift */; };
-		7FFC00000000000000000279 /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000085 /* ArtworkView.swift */; };
-		7FFC0000000000000000027A /* CoverPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000086 /* CoverPalette.swift */; };
-		7FFC0000000000000000027B /* StageComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000087 /* StageComponents.swift */; };
-		7FFC0000000000000000027C /* PlayerChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000088 /* PlayerChrome.swift */; };
-		7FFC0000000000000000027D /* MiniPlayerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000089 /* MiniPlayerBar.swift */; };
-		7FFC0000000000000000027E /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000008A /* PlayerView.swift */; };
-		7FFC0000000000000000027F /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000008B /* LibraryView.swift */; };
-		7FFC00000000000000000280 /* WebUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000008C /* WebUploadView.swift */; };
+		7FFC00000000000000000263 /* LiveDanmakuWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000006F /* LiveDanmakuWindow.swift */; };
+		7FFC00000000000000000264 /* WebImportPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000070 /* WebImportPolicy.swift */; };
+		7FFC00000000000000000265 /* IncomingTransfer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000071 /* IncomingTransfer.swift */; };
+		7FFC00000000000000000266 /* PlaybackClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000072 /* PlaybackClock.swift */; };
+		7FFC00000000000000000267 /* TrackDuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000073 /* TrackDuration.swift */; };
+		7FFC00000000000000000268 /* ScrubSeek.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000074 /* ScrubSeek.swift */; };
+		7FFC00000000000000000269 /* WaveformPeaks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000075 /* WaveformPeaks.swift */; };
+		7FFC0000000000000000026A /* ImportSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000076 /* ImportSource.swift */; };
+		7FFC0000000000000000026B /* PlaybackItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000077 /* PlaybackItem.swift */; };
+		7FFC0000000000000000026C /* Track.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000078 /* Track.swift */; };
+		7FFC0000000000000000026D /* DanmakuComment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000079 /* DanmakuComment.swift */; };
+		7FFC0000000000000000026E /* MetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007A /* MetadataExtractor.swift */; };
+		7FFC0000000000000000026F /* AudioSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007B /* AudioSessionController.swift */; };
+		7FFC00000000000000000270 /* LocalIPAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007C /* LocalIPAddress.swift */; };
+		7FFC00000000000000000271 /* LocalNetworkAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007D /* LocalNetworkAccess.swift */; };
+		7FFC00000000000000000272 /* LibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007E /* LibraryService.swift */; };
+		7FFC00000000000000000273 /* DanmakuService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000007F /* DanmakuService.swift */; };
+		7FFC00000000000000000274 /* NowPlayingCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000080 /* NowPlayingCenter.swift */; };
+		7FFC00000000000000000275 /* PlayerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000081 /* PlayerEngine.swift */; };
+		7FFC00000000000000000276 /* WebUploadServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000082 /* WebUploadServer.swift */; };
+		7FFC00000000000000000277 /* AudioWaveformAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000083 /* AudioWaveformAnalyzer.swift */; };
+		7FFC00000000000000000278 /* AudioDocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000084 /* AudioDocumentPicker.swift */; };
+		7FFC00000000000000000279 /* AppleMusicPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000085 /* AppleMusicPicker.swift */; };
+		7FFC0000000000000000027A /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000086 /* ArtworkView.swift */; };
+		7FFC0000000000000000027B /* CoverPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000087 /* CoverPalette.swift */; };
+		7FFC0000000000000000027C /* StageComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000088 /* StageComponents.swift */; };
+		7FFC0000000000000000027D /* PlayerChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000089 /* PlayerChrome.swift */; };
+		7FFC0000000000000000027E /* MiniPlayerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000008A /* MiniPlayerBar.swift */; };
+		7FFC0000000000000000027F /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000008B /* PlayerView.swift */; };
+		7FFC00000000000000000280 /* PlaylistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000008C /* PlaylistView.swift */; };
+		7FFC00000000000000000281 /* LiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000008D /* LiveView.swift */; };
+		7FFC00000000000000000282 /* DanmakuModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000008E /* DanmakuModal.swift */; };
+		7FFC00000000000000000283 /* WebUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000008F /* WebUploadView.swift */; };
 		7FFC00000000000000000384 /* ImportFormatAllowlistTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000320 /* ImportFormatAllowlistTests.swift */; };
 		7FFC00000000000000000385 /* PairingCodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000321 /* PairingCodeTests.swift */; };
 		7FFC00000000000000000386 /* PlaybackModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000322 /* PlaybackModeTests.swift */; };
@@ -61,6 +64,7 @@
 		7FFC0000000000000000038C /* WaveformPeaksTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000328 /* WaveformPeaksTests.swift */; };
 		7FFC0000000000000000038D /* TrackDurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000329 /* TrackDurationTests.swift */; };
 		7FFC0000000000000000038E /* ScrubSeekTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000032A /* ScrubSeekTests.swift */; };
+		7FFC0000000000000000038F /* LiveDanmakuWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC0000000000000000032B /* LiveDanmakuWindowTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,36 +96,39 @@
 		7FFC0000000000000000006C /* ResumeState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeState.swift; sourceTree = "<group>"; };
 		7FFC0000000000000000006D /* LibrarySearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySearch.swift; sourceTree = "<group>"; };
 		7FFC0000000000000000006E /* DanmakuCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanmakuCore.swift; sourceTree = "<group>"; };
-		7FFC0000000000000000006F /* WebImportPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebImportPolicy.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000070 /* IncomingTransfer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingTransfer.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000071 /* PlaybackClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackClock.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000072 /* TrackDuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackDuration.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000073 /* ScrubSeek.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrubSeek.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000074 /* WaveformPeaks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformPeaks.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000075 /* ImportSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportSource.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000076 /* PlaybackItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackItem.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000077 /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000078 /* DanmakuComment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanmakuComment.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000079 /* MetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataExtractor.swift; sourceTree = "<group>"; };
-		7FFC0000000000000000007A /* AudioSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionController.swift; sourceTree = "<group>"; };
-		7FFC0000000000000000007B /* LocalIPAddress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalIPAddress.swift; sourceTree = "<group>"; };
-		7FFC0000000000000000007C /* LocalNetworkAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNetworkAccess.swift; sourceTree = "<group>"; };
-		7FFC0000000000000000007D /* LibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryService.swift; sourceTree = "<group>"; };
-		7FFC0000000000000000007E /* DanmakuService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanmakuService.swift; sourceTree = "<group>"; };
-		7FFC0000000000000000007F /* NowPlayingCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingCenter.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000080 /* PlayerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerEngine.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000081 /* WebUploadServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebUploadServer.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000082 /* AudioWaveformAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioWaveformAnalyzer.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000083 /* AudioDocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDocumentPicker.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000084 /* AppleMusicPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicPicker.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000085 /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkView.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000086 /* CoverPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverPalette.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000087 /* StageComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageComponents.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000088 /* PlayerChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerChrome.swift; sourceTree = "<group>"; };
-		7FFC00000000000000000089 /* MiniPlayerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerBar.swift; sourceTree = "<group>"; };
-		7FFC0000000000000000008A /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
-		7FFC0000000000000000008B /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
-		7FFC0000000000000000008C /* WebUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebUploadView.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000006F /* LiveDanmakuWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveDanmakuWindow.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000070 /* WebImportPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebImportPolicy.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000071 /* IncomingTransfer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingTransfer.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000072 /* PlaybackClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackClock.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000073 /* TrackDuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackDuration.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000074 /* ScrubSeek.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrubSeek.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000075 /* WaveformPeaks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformPeaks.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000076 /* ImportSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportSource.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000077 /* PlaybackItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackItem.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000078 /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000079 /* DanmakuComment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanmakuComment.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000007A /* MetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataExtractor.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000007B /* AudioSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionController.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000007C /* LocalIPAddress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalIPAddress.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000007D /* LocalNetworkAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNetworkAccess.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000007E /* LibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryService.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000007F /* DanmakuService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanmakuService.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000080 /* NowPlayingCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingCenter.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000081 /* PlayerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerEngine.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000082 /* WebUploadServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebUploadServer.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000083 /* AudioWaveformAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioWaveformAnalyzer.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000084 /* AudioDocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDocumentPicker.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000085 /* AppleMusicPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicPicker.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000086 /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkView.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000087 /* CoverPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverPalette.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000088 /* StageComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageComponents.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000089 /* PlayerChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerChrome.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000008A /* MiniPlayerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerBar.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000008B /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000008C /* PlaylistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistView.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000008D /* LiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveView.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000008E /* DanmakuModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanmakuModal.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000008F /* WebUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebUploadView.swift; sourceTree = "<group>"; };
 		7FFC00000000000000000320 /* ImportFormatAllowlistTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportFormatAllowlistTests.swift; sourceTree = "<group>"; };
 		7FFC00000000000000000321 /* PairingCodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingCodeTests.swift; sourceTree = "<group>"; };
 		7FFC00000000000000000322 /* PlaybackModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackModeTests.swift; sourceTree = "<group>"; };
@@ -133,6 +140,7 @@
 		7FFC00000000000000000328 /* WaveformPeaksTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformPeaksTests.swift; sourceTree = "<group>"; };
 		7FFC00000000000000000329 /* TrackDurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackDurationTests.swift; sourceTree = "<group>"; };
 		7FFC0000000000000000032A /* ScrubSeekTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrubSeekTests.swift; sourceTree = "<group>"; };
+		7FFC0000000000000000032B /* LiveDanmakuWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveDanmakuWindowTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -206,6 +214,7 @@
 				7FFC00000000000000000328 /* WaveformPeaksTests.swift */,
 				7FFC00000000000000000329 /* TrackDurationTests.swift */,
 				7FFC0000000000000000032A /* ScrubSeekTests.swift */,
+				7FFC0000000000000000032B /* LiveDanmakuWindowTests.swift */,
 			);
 			path = LoveSongTests;
 			sourceTree = "<group>";
@@ -229,12 +238,13 @@
 				7FFC0000000000000000006C /* ResumeState.swift */,
 				7FFC0000000000000000006D /* LibrarySearch.swift */,
 				7FFC0000000000000000006E /* DanmakuCore.swift */,
-				7FFC0000000000000000006F /* WebImportPolicy.swift */,
-				7FFC00000000000000000070 /* IncomingTransfer.swift */,
-				7FFC00000000000000000071 /* PlaybackClock.swift */,
-				7FFC00000000000000000072 /* TrackDuration.swift */,
-				7FFC00000000000000000073 /* ScrubSeek.swift */,
-				7FFC00000000000000000074 /* WaveformPeaks.swift */,
+				7FFC0000000000000000006F /* LiveDanmakuWindow.swift */,
+				7FFC00000000000000000070 /* WebImportPolicy.swift */,
+				7FFC00000000000000000071 /* IncomingTransfer.swift */,
+				7FFC00000000000000000072 /* PlaybackClock.swift */,
+				7FFC00000000000000000073 /* TrackDuration.swift */,
+				7FFC00000000000000000074 /* ScrubSeek.swift */,
+				7FFC00000000000000000075 /* WaveformPeaks.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -242,10 +252,10 @@
 		7FFC0000000000000000001F /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				7FFC00000000000000000075 /* ImportSource.swift */,
-				7FFC00000000000000000076 /* PlaybackItem.swift */,
-				7FFC00000000000000000077 /* Track.swift */,
-				7FFC00000000000000000078 /* DanmakuComment.swift */,
+				7FFC00000000000000000076 /* ImportSource.swift */,
+				7FFC00000000000000000077 /* PlaybackItem.swift */,
+				7FFC00000000000000000078 /* Track.swift */,
+				7FFC00000000000000000079 /* DanmakuComment.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -253,16 +263,16 @@
 		7FFC00000000000000000020 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				7FFC00000000000000000079 /* MetadataExtractor.swift */,
-				7FFC0000000000000000007A /* AudioSessionController.swift */,
-				7FFC0000000000000000007B /* LocalIPAddress.swift */,
-				7FFC0000000000000000007C /* LocalNetworkAccess.swift */,
-				7FFC0000000000000000007D /* LibraryService.swift */,
-				7FFC0000000000000000007E /* DanmakuService.swift */,
-				7FFC0000000000000000007F /* NowPlayingCenter.swift */,
-				7FFC00000000000000000080 /* PlayerEngine.swift */,
-				7FFC00000000000000000081 /* WebUploadServer.swift */,
-				7FFC00000000000000000082 /* AudioWaveformAnalyzer.swift */,
+				7FFC0000000000000000007A /* MetadataExtractor.swift */,
+				7FFC0000000000000000007B /* AudioSessionController.swift */,
+				7FFC0000000000000000007C /* LocalIPAddress.swift */,
+				7FFC0000000000000000007D /* LocalNetworkAccess.swift */,
+				7FFC0000000000000000007E /* LibraryService.swift */,
+				7FFC0000000000000000007F /* DanmakuService.swift */,
+				7FFC00000000000000000080 /* NowPlayingCenter.swift */,
+				7FFC00000000000000000081 /* PlayerEngine.swift */,
+				7FFC00000000000000000082 /* WebUploadServer.swift */,
+				7FFC00000000000000000083 /* AudioWaveformAnalyzer.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -270,8 +280,8 @@
 		7FFC00000000000000000021 /* Representables */ = {
 			isa = PBXGroup;
 			children = (
-				7FFC00000000000000000083 /* AudioDocumentPicker.swift */,
-				7FFC00000000000000000084 /* AppleMusicPicker.swift */,
+				7FFC00000000000000000084 /* AudioDocumentPicker.swift */,
+				7FFC00000000000000000085 /* AppleMusicPicker.swift */,
 			);
 			path = Representables;
 			sourceTree = "<group>";
@@ -279,14 +289,16 @@
 		7FFC00000000000000000022 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				7FFC00000000000000000085 /* ArtworkView.swift */,
-				7FFC00000000000000000086 /* CoverPalette.swift */,
-				7FFC00000000000000000087 /* StageComponents.swift */,
-				7FFC00000000000000000088 /* PlayerChrome.swift */,
-				7FFC00000000000000000089 /* MiniPlayerBar.swift */,
-				7FFC0000000000000000008A /* PlayerView.swift */,
-				7FFC0000000000000000008B /* LibraryView.swift */,
-				7FFC0000000000000000008C /* WebUploadView.swift */,
+				7FFC00000000000000000086 /* ArtworkView.swift */,
+				7FFC00000000000000000087 /* CoverPalette.swift */,
+				7FFC00000000000000000088 /* StageComponents.swift */,
+				7FFC00000000000000000089 /* PlayerChrome.swift */,
+				7FFC0000000000000000008A /* MiniPlayerBar.swift */,
+				7FFC0000000000000000008B /* PlayerView.swift */,
+				7FFC0000000000000000008C /* PlaylistView.swift */,
+				7FFC0000000000000000008D /* LiveView.swift */,
+				7FFC0000000000000000008E /* DanmakuModal.swift */,
+				7FFC0000000000000000008F /* WebUploadView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -407,36 +419,39 @@
 				7FFC00000000000000000260 /* ResumeState.swift in Sources */,
 				7FFC00000000000000000261 /* LibrarySearch.swift in Sources */,
 				7FFC00000000000000000262 /* DanmakuCore.swift in Sources */,
-				7FFC00000000000000000263 /* WebImportPolicy.swift in Sources */,
-				7FFC00000000000000000264 /* IncomingTransfer.swift in Sources */,
-				7FFC00000000000000000265 /* PlaybackClock.swift in Sources */,
-				7FFC00000000000000000266 /* TrackDuration.swift in Sources */,
-				7FFC00000000000000000267 /* ScrubSeek.swift in Sources */,
-				7FFC00000000000000000268 /* WaveformPeaks.swift in Sources */,
-				7FFC00000000000000000269 /* ImportSource.swift in Sources */,
-				7FFC0000000000000000026A /* PlaybackItem.swift in Sources */,
-				7FFC0000000000000000026B /* Track.swift in Sources */,
-				7FFC0000000000000000026C /* DanmakuComment.swift in Sources */,
-				7FFC0000000000000000026D /* MetadataExtractor.swift in Sources */,
-				7FFC0000000000000000026E /* AudioSessionController.swift in Sources */,
-				7FFC0000000000000000026F /* LocalIPAddress.swift in Sources */,
-				7FFC00000000000000000270 /* LocalNetworkAccess.swift in Sources */,
-				7FFC00000000000000000271 /* LibraryService.swift in Sources */,
-				7FFC00000000000000000272 /* DanmakuService.swift in Sources */,
-				7FFC00000000000000000273 /* NowPlayingCenter.swift in Sources */,
-				7FFC00000000000000000274 /* PlayerEngine.swift in Sources */,
-				7FFC00000000000000000275 /* WebUploadServer.swift in Sources */,
-				7FFC00000000000000000276 /* AudioWaveformAnalyzer.swift in Sources */,
-				7FFC00000000000000000277 /* AudioDocumentPicker.swift in Sources */,
-				7FFC00000000000000000278 /* AppleMusicPicker.swift in Sources */,
-				7FFC00000000000000000279 /* ArtworkView.swift in Sources */,
-				7FFC0000000000000000027A /* CoverPalette.swift in Sources */,
-				7FFC0000000000000000027B /* StageComponents.swift in Sources */,
-				7FFC0000000000000000027C /* PlayerChrome.swift in Sources */,
-				7FFC0000000000000000027D /* MiniPlayerBar.swift in Sources */,
-				7FFC0000000000000000027E /* PlayerView.swift in Sources */,
-				7FFC0000000000000000027F /* LibraryView.swift in Sources */,
-				7FFC00000000000000000280 /* WebUploadView.swift in Sources */,
+				7FFC00000000000000000263 /* LiveDanmakuWindow.swift in Sources */,
+				7FFC00000000000000000264 /* WebImportPolicy.swift in Sources */,
+				7FFC00000000000000000265 /* IncomingTransfer.swift in Sources */,
+				7FFC00000000000000000266 /* PlaybackClock.swift in Sources */,
+				7FFC00000000000000000267 /* TrackDuration.swift in Sources */,
+				7FFC00000000000000000268 /* ScrubSeek.swift in Sources */,
+				7FFC00000000000000000269 /* WaveformPeaks.swift in Sources */,
+				7FFC0000000000000000026A /* ImportSource.swift in Sources */,
+				7FFC0000000000000000026B /* PlaybackItem.swift in Sources */,
+				7FFC0000000000000000026C /* Track.swift in Sources */,
+				7FFC0000000000000000026D /* DanmakuComment.swift in Sources */,
+				7FFC0000000000000000026E /* MetadataExtractor.swift in Sources */,
+				7FFC0000000000000000026F /* AudioSessionController.swift in Sources */,
+				7FFC00000000000000000270 /* LocalIPAddress.swift in Sources */,
+				7FFC00000000000000000271 /* LocalNetworkAccess.swift in Sources */,
+				7FFC00000000000000000272 /* LibraryService.swift in Sources */,
+				7FFC00000000000000000273 /* DanmakuService.swift in Sources */,
+				7FFC00000000000000000274 /* NowPlayingCenter.swift in Sources */,
+				7FFC00000000000000000275 /* PlayerEngine.swift in Sources */,
+				7FFC00000000000000000276 /* WebUploadServer.swift in Sources */,
+				7FFC00000000000000000277 /* AudioWaveformAnalyzer.swift in Sources */,
+				7FFC00000000000000000278 /* AudioDocumentPicker.swift in Sources */,
+				7FFC00000000000000000279 /* AppleMusicPicker.swift in Sources */,
+				7FFC0000000000000000027A /* ArtworkView.swift in Sources */,
+				7FFC0000000000000000027B /* CoverPalette.swift in Sources */,
+				7FFC0000000000000000027C /* StageComponents.swift in Sources */,
+				7FFC0000000000000000027D /* PlayerChrome.swift in Sources */,
+				7FFC0000000000000000027E /* MiniPlayerBar.swift in Sources */,
+				7FFC0000000000000000027F /* PlayerView.swift in Sources */,
+				7FFC00000000000000000280 /* PlaylistView.swift in Sources */,
+				7FFC00000000000000000281 /* LiveView.swift in Sources */,
+				7FFC00000000000000000282 /* DanmakuModal.swift in Sources */,
+				7FFC00000000000000000283 /* WebUploadView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -455,6 +470,7 @@
 				7FFC0000000000000000038C /* WaveformPeaksTests.swift in Sources */,
 				7FFC0000000000000000038D /* TrackDurationTests.swift in Sources */,
 				7FFC0000000000000000038E /* ScrubSeekTests.swift in Sources */,
+				7FFC0000000000000000038F /* LiveDanmakuWindowTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

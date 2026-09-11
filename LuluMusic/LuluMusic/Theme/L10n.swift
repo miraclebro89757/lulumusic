@@ -4,15 +4,20 @@ enum L10n {
     static let appName = "LoveSong"
     static let appNameEN = "LoveSong"
 
-    static let tabLibrary = "演唱会回忆"
+    static let tabPlaylist = "歌单"
     static let tabPlayer = "播放"
+    static let tabLive = "现场"
 
-    static let searchPrompt = "搜索歌名、歌手或现场"
-    static let emptyLibraryTitle = "还没有歌曲"
+    static let playlistTitle = "我的歌单"
+    static let searchPrompt = "搜索歌曲或现场"
+    static let emptyLibraryTitle = "还没有现场录音"
     static let emptyLibrarySubtitle = "从文件、隔空投送或同一 Wi‑Fi 网页上传音频。支持 mp3 / m4a / aac / wav / flac。"
     static let wifiImportShort = "Wi‑Fi 导入"
     static let filesImportShort = "文件"
-    static let emptyLibraryAction = "导入第一首歌"
+    static let emptyLibraryAction = "导入现场录音"
+    static let emptyWifiAction = "Wi‑Fi 从电脑导入"
+    static let searchNoResults = "没有找到相关歌曲"
+    static let importingBanner = "正在导入…"
 
     static let unknownTitle = "未知标题"
     static let unknownArtist = "未知艺术家"
@@ -20,6 +25,7 @@ enum L10n {
     static let venuePlaceholder = "现场"
     static let setVenue = "设置现场标签"
     static let venueTag = "现场"
+    static let venueAdd = "添加现场标签"
     static let songTitle = "歌名"
 
     static let delete = "删除"
@@ -34,29 +40,32 @@ enum L10n {
     static let nowPlaying = "正在播放"
     static let upNext = "待播队列"
     static let noTrack = "尚未选择歌曲"
-    static let pickFromLibrary = "从演唱会回忆点一首开始听"
+    static let pickFromLibrary = "去歌单选一首"
+    static let liveEmptyTrack = "先去歌单选一首现场录音"
+    static let liveEmptyDanmaku = "记下这一刻"
+    static let liveBack = "返回播放"
 
     static let sequential = "顺序播放"
     static let shuffle = "随机播放"
     static let repeatOne = "单曲循环"
 
     static let importFilesTitle = "从文件导入"
-    static let importFilesButton = "选择音频文件"
-    static let importWebTitle = "Wi‑Fi 网页导入"
-    static let importWebButton = "网页上传"
+    static let importFilesButton = "导入本地音频"
+    static let importWebTitle = "Wi‑Fi 导入"
+    static let importWebButton = "Wi‑Fi 导入"
     static let importing = "正在导入…"
     static let importSuccess = "导入完成"
-    static let importFailed = "导入失败"
+    static let importFailed = "导入失败，请重试"
     static let importedCountFormat = "已导入 %d 首"
     static let skippedDRM = "无法导入受保护的歌曲"
 
-    static let webUploadTitle = "网页上传"
-    static let webUploadHint = "手机与电脑连同一 Wi‑Fi。浏览器打开下方地址，先输入 4 位配对码。"
+    static let webUploadTitle = "Wi‑Fi 导入"
+    static let webUploadHint = "同一 Wi‑Fi 下用电脑浏览器打开下列地址"
     static let serverRunning = "服务进行中"
     static let serverStopped = "服务未开启"
     static let lanAddress = "局域网地址"
     static let pairingCode = "配对码"
-    static let pairingHint = "电脑第一次打开页面时需要输入这个 4 位数字。"
+    static let pairingHint = "浏览器首次需输入配对码"
     static let copyURL = "复制链接"
     static let copyPairing = "复制配对码"
     static let copied = "已复制"
@@ -65,11 +74,16 @@ enum L10n {
     static let receiving = "正在接收"
     static let failed = "失败"
     static let keepForeground = "上传时请保持本页打开，不要关闭或切走，否则传输会中断"
+    static let wifiDenied = "需要本地网络权限才能导入"
+    static let wifiOpenSettings = "打开设置"
+    static let openingServer = "正在开启服务…"
 
     static let danmakuPlaceholder = "发弹幕…"
     static let danmakuSend = "发送"
     static let danmakuOn = "弹幕开"
     static let danmakuOff = "弹幕关"
+    static let danmakuModalTitle = "快捷弹幕"
+    static let danmakuSmile = "快捷弹幕"
 
     static let durationUnknown = "--:--"
     static let tracksUnit = "首"
@@ -81,4 +95,16 @@ enum L10n {
     static let cannotOpenFile = "无法读取该文件"
     static let unsupportedFormat = "暂不支持此音频格式（v0.1 仅 mp3 / m4a / aac / wav / flac）"
     static let importFailedGeneric = "导入失败"
+    static let playbackFailed = "无法播放"
+
+    static let danmakuPhrases = [
+        "起鸡皮疙瘩了",
+        "副歌太绝了",
+        "泪目",
+        "这段神仙",
+        "安可！！",
+        "好想再去一次",
+        "灯光美",
+        "声音封神"
+    ]
 }

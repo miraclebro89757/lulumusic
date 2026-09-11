@@ -14,7 +14,7 @@ struct ArtworkView: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                Image(systemName: "music.note")
+                Image(systemName: "opticaldisc")
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(LoveSongTheme.textPrimary.opacity(0.85))
             }

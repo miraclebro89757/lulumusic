@@ -25,6 +25,7 @@ FILES = [
     ("Core", "ResumeState.swift", True),
     ("Core", "LibrarySearch.swift", True),
     ("Core", "DanmakuCore.swift", True),
+    ("Core", "LiveDanmakuWindow.swift", True),
     ("Core", "WebImportPolicy.swift", True),
     ("Core", "IncomingTransfer.swift", True),
     ("Core", "PlaybackClock.swift", True),
@@ -53,7 +54,9 @@ FILES = [
     ("Views", "PlayerChrome.swift", True),
     ("Views", "MiniPlayerBar.swift", True),
     ("Views", "PlayerView.swift", True),
-    ("Views", "LibraryView.swift", True),
+    ("Views", "PlaylistView.swift", True),
+    ("Views", "LiveView.swift", True),
+    ("Views", "DanmakuModal.swift", True),
     ("Views", "WebUploadView.swift", True),
 ]
 
@@ -69,6 +72,7 @@ TEST_FILES = [
     "WaveformPeaksTests.swift",
     "TrackDurationTests.swift",
     "ScrubSeekTests.swift",
+    "LiveDanmakuWindowTests.swift",
 ]
 
 ASSETS = "Assets.xcassets"
