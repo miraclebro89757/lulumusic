@@ -93,6 +93,21 @@ final class DanmakuStoreAndSchedulerTests: XCTestCase {
         XCTAssertNil(runtime.send(trackId: UUID(), text: "   ", currentTimeMS: 0))
         XCTAssertTrue(runtime.flying.isEmpty)
     }
+
+    func testSendWhenDisplayOffStillReturnsRecordWithoutFlying() {
+        var runtime = DanmakuRuntime(store: InMemoryDanmakuStore())
+        runtime.enabled = false
+        let record = runtime.send(trackId: UUID(), text: "记下这一刻", currentTimeMS: 800)
+        XCTAssertEqual(record?.text, "记下这一刻")
+        XCTAssertTrue(runtime.flying.isEmpty)
+    }
+
+    func testSendTruncatesToEightyCharacters() {
+        var runtime = DanmakuRuntime(store: InMemoryDanmakuStore())
+        let long = String(repeating: "啊", count: 100)
+        let record = runtime.send(trackId: UUID(), text: long, currentTimeMS: 10)
+        XCTAssertEqual(record?.text.count, 80)
+    }
 }
 
 private final class SlowDanmakuStore: DanmakuStoring {

@@ -81,6 +81,8 @@ def test_danmaku() -> None:
     check("testReplaySpawnsLeadAndStaysWithin300ms" in tests, "timing test")
     check("testSendEnqueuesImmediatelyWithin100msBudget" in tests, "send test")
     check("testOptimisticSendFliesBeforeSlowPersist" in tests, "optimistic send test")
+    check("testSendWhenDisplayOffStillReturnsRecordWithoutFlying" in tests, "display-off still writes")
+    check("testSendTruncatesToEightyCharacters" in tests, "80-char truncate test")
     send_fn = src.split("mutating func send(")[1].split("mutating func tick(")[0] if "mutating func send(" in src else ""
     check("store.insert" not in send_fn, "send path must not block on store.insert")
 
@@ -181,8 +183,10 @@ def test_wifi_ui_and_plist() -> None:
     check("LocalNetworkAccess" in view, "request local network on enter")
     check("stayOpenBanner" in view or "上传时请保持本页打开" in view, "stay-open banner in UI")
     l10n = read("LuluMusic/LuluMusic/Theme/L10n.swift")
-    check("演唱会回忆" in l10n, "rename 曲库 → 演唱会回忆")
+    check("我的歌单" in l10n, "playlist title 我的歌单")
+    check("歌单" in l10n and "现场" in l10n, "tab copy 歌单 / 现场")
     check("曲库" not in l10n, "no leftover 曲库 in L10n")
+    check("Like" not in l10n and "喜欢" not in l10n, "no Like copy")
     plist = read("LuluMusic/LuluMusic/Info.plist")
     check("NSLocalNetworkUsageDescription" in plist, "local network usage")
     check("NSBonjourServices" in plist, "Bonjour services")
@@ -198,7 +202,7 @@ def test_wifi_ui_and_plist() -> None:
 
 
 def test_no_now_playing_matched_geometry() -> None:
-    """Shared-element morph is removed so mini + player tab + overlay can coexist."""
+    """Shared-element morph stays gone; MiniPlayer switches Player Tab (no overlay)."""
     chrome = read("LuluMusic/LuluMusic/Views/PlayerChrome.swift")
     mini = read("LuluMusic/LuluMusic/Views/MiniPlayerBar.swift")
     player = read("LuluMusic/LuluMusic/Views/PlayerView.swift")
@@ -219,11 +223,13 @@ def test_no_now_playing_matched_geometry() -> None:
     check("NowPlayingMatchedGeometryTests" not in generator, "geometry XCTest dropped from project generator")
     check("playIsSource" not in chrome and "playMatchActive" not in chrome, "transport has no match source flags")
     check("MiniPlayerBar" in content, "mini player still presented")
-    check("FullPlayerOverlay" in content, "full player overlay still presented")
+    check("FullPlayerOverlay" not in content, "no FullPlayerOverlay on root (CH-14)")
+    check("isFullPlayerPresented" not in content, "overlay present flag removed from root")
     check("struct MiniPlayerBar" in mini, "mini player bar intact")
     check("struct PlayerView" in player, "full player view intact")
-    check("isFullPlayerPresented" in content, "present/dismiss flag still drives overlay")
     check("@Namespace" not in content, "no shared-element namespace on root")
+    check("navigation.tab = .player" in mini or "tab = .player" in mini, "MiniPlayer tap switches to Player Tab")
+    check("isFullPlayerPresented" not in mini, "MiniPlayer does not morph overlay")
 
 
 def test_project_wires_tests() -> None:
@@ -247,6 +253,12 @@ def test_project_wires_tests() -> None:
     check("ScrubSeekTests.swift" in pbx, "scrub tests in pbx")
     check("QRCodeImage.swift" not in pbx, "QR removed from pbx")
     check("RepeatMode.swift" not in pbx, "repeat-all type removed")
+    check("LiveDanmakuWindow.swift" in pbx, "Live visible-window helper in pbx")
+    check("LiveView.swift" in pbx, "LiveView in pbx")
+    check("PlaylistView.swift" in pbx, "PlaylistView in pbx")
+    check("DanmakuModal.swift" in pbx, "DanmakuModal in pbx")
+    check("LiveDanmakuWindowTests.swift" in pbx, "Live window tests in pbx")
+    check("LibraryView.swift" not in pbx, "LibraryView renamed to PlaylistView")
     check("DEVELOPMENT_TEAM = 5595Y4TR6U;" in pbx, "keep DEVELOPMENT_TEAM 5595Y4TR6U")
     generator = read("scripts/generate_xcodeproj.py")
     check("DEVELOPMENT_TEAM = 5595Y4TR6U;" in generator, "generator keeps DEVELOPMENT_TEAM")
@@ -256,6 +268,106 @@ def test_project_wires_tests() -> None:
     check("LoveSongTests.xctest" in scheme, "scheme runs tests")
     plist = read("LuluMusic/LuluMusic/Info.plist")
     check("<string>LoveSong</string>" in plist, "display name")
+
+
+def live_visible_python(records: list[dict], now_ms: int, limit: int = 50) -> list[dict]:
+    triggered = [r for r in records if r["timestampMS"] <= now_ms]
+    triggered.sort(key=lambda r: (r["timestampMS"], r["createdAt"], r["id"]))
+    return triggered[-limit:] if len(triggered) > limit else triggered
+
+
+def test_live_visible_window() -> None:
+    check(exists("LuluMusic/LuluMusic/Core/LiveDanmakuWindow.swift"), "LiveDanmakuWindow.swift exists")
+    check(exists("LuluMusic/LoveSongTests/LiveDanmakuWindowTests.swift"), "LiveDanmakuWindow XCTest exists")
+    src = read("LuluMusic/LuluMusic/Core/LiveDanmakuWindow.swift") if exists("LuluMusic/LuluMusic/Core/LiveDanmakuWindow.swift") else ""
+    tests = read("LuluMusic/LoveSongTests/LiveDanmakuWindowTests.swift")
+    check("enum LiveDanmakuWindow" in src or "struct LiveDanmakuWindow" in src, "LiveDanmakuWindow type")
+    check("maxVisible" in src and "50" in src, "visible cap 50")
+    check("timestampMS" in src and "<=" in src, "only timestampMS ≤ now")
+    check("suffix(" in src or "suffix (" in src, "keep last N triggered")
+    check("testIncludesOnlyCommentsAtOrBeforeNow" in tests, "≤ now test")
+    check("testCapsVisibleSetAtFiftyMostRecentTriggered" in tests, "cap 50 test")
+    check("testSeekBackwardRebuildsWindowFromScratch" in tests, "seek rebuild test")
+    records = [
+        {"id": f"{i:03d}", "timestampMS": i * 100, "createdAt": i, "text": f"c{i}"}
+        for i in range(80)
+    ]
+    now = live_visible_python(records, now_ms=10_000)
+    check(len(now) == 50, "python twin caps at 50")
+    check(now[0]["text"] == "c30" and now[-1]["text"] == "c79", "python twin keeps last 50")
+    future_excluded = live_visible_python(
+        [
+            {"id": "a", "timestampMS": 1000, "createdAt": 0, "text": "early"},
+            {"id": "b", "timestampMS": 5000, "createdAt": 0, "text": "now"},
+            {"id": "c", "timestampMS": 9000, "createdAt": 0, "text": "future"},
+        ],
+        now_ms=5000,
+    )
+    check([r["text"] for r in future_excluded] == ["early", "now"], "python twin excludes future")
+    after_seek = live_visible_python(records[:10], now_ms=200)
+    check([r["text"] for r in after_seek] == ["c0", "c1", "c2"], "python twin seek rebuild")
+    live = read("LuluMusic/LuluMusic/Views/LiveView.swift") if exists("LuluMusic/LuluMusic/Views/LiveView.swift") else ""
+    check("LiveDanmakuWindow" in live, "LiveView uses LiveDanmakuWindow")
+    check("DanmakuService" in live, "LiveView shares DanmakuService")
+    check("PlayerEngine" in live, "LiveView shares PlayerEngine")
+    check("heart.fill" not in live and "FloatingHeart" not in live, "Live has no hearts")
+    check("LikeButton" not in live and "AvatarStack" not in live, "Live has no Like/avatars")
+
+
+def test_theme_black_purple_white() -> None:
+    theme = read("LuluMusic/LuluMusic/Theme/LoveSongTheme.swift")
+    check("0x09060F" in theme, "bg.stage #09060F")
+    check("0x0E0A17" in theme, "bg.elevated #0E0A17")
+    check("0x8B5CF6" in theme, "accent #8B5CF6")
+    check("0x7C3AED" in theme, "accentPressed #7C3AED")
+    check("static let accent" in theme, "accent token name")
+    check("0xFF8A3D" not in theme, "theme has no #FF8A3D")
+    check("spotlight" not in theme or "static let spotlight" not in theme, "spotlight orange token removed")
+    accent_asset = read("LuluMusic/LuluMusic/Assets.xcassets/AccentColor.colorset/Contents.json")
+    check('"red" : "1.000"' not in accent_asset, "AccentColor is not leftover orange")
+    check("0.545" in accent_asset or "0.545098" in accent_asset or '"red" : "0.545"' in accent_asset, "AccentColor red ~8B")
+    orange_hits = []
+    for path in (ROOT / "LuluMusic").rglob("*"):
+        if not path.is_file() or path.suffix.lower() not in {".swift", ".json"}:
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        if "FF8A3D" in text or "0xFF8A3D" in text:
+            orange_hits.append(str(path.relative_to(ROOT)))
+    check(orange_hits == [], f"FF8A3D leftover as primary accent: {orange_hits}")
+    content = read("LuluMusic/LuluMusic/ContentView.swift")
+    check(".tint(LoveSongTheme.accent)" in content, "Tab tint is accent purple")
+
+
+def test_three_tab_ia() -> None:
+    content = read("LuluMusic/LuluMusic/ContentView.swift")
+    chrome = read("LuluMusic/LuluMusic/Views/PlayerChrome.swift")
+    l10n = read("LuluMusic/LuluMusic/Theme/L10n.swift")
+    check("case playlist" in chrome and "case player" in chrome and "case live" in chrome, "AppTab has playlist/player/live")
+    check("case library" not in chrome, "AppTab.library removed")
+    check("PlaylistView" in content, "Playlist tab content")
+    check("PlayerView" in content, "Player tab content")
+    check("LiveView" in content, "Live tab content")
+    check("list.music" in content, "playlist SF list.music")
+    check("opticaldisc" in content or "play.circle.fill" in content, "player SF opticaldisc/play.circle.fill")
+    check("bubble.left.and.bubble.right" in content, "live SF bubble.left.and.bubble.right")
+    check("tabPlaylist" in l10n and "tabPlayer" in l10n and "tabLive" in l10n, "three tab L10n keys")
+    check("ConcertMemory" not in content and "Setlist" not in content, "no ConcertMemory/Setlist in root")
+    player = read("LuluMusic/LuluMusic/Views/PlayerView.swift")
+    check("tab = .live" in player, "Player cover/venue switches to Live Tab")
+    check("tab = .playlist" in player, "Player toolbar switches to Playlist Tab")
+    playlist = read("LuluMusic/LuluMusic/Views/PlaylistView.swift") if exists("LuluMusic/LuluMusic/Views/PlaylistView.swift") else ""
+    check("tab = .player" in playlist, "Playlist row play switches to Player Tab")
+    check("WebUploadView" in playlist, "Wi-Fi entry only from Playlist")
+    wifi = read("LuluMusic/LuluMusic/Views/WebUploadView.swift")
+    check("LoveSongTheme.accent" in wifi, "Wi-Fi restyle uses accent token")
+    modal = read("LuluMusic/LuluMusic/Views/DanmakuModal.swift") if exists("LuluMusic/LuluMusic/Views/DanmakuModal.swift") else ""
+    check("起鸡皮疙瘩了" in modal, "S5 phrase pack")
+    check("安可！！" in modal, "S5 encore phrase")
+    drop_needles = ("LikeButton", "FloatingHeart", "AvatarStack", "ConcertMemoryModal", "SetlistDrawer")
+    for path in (ROOT / "LuluMusic").rglob("*.swift"):
+        src = path.read_text(encoding="utf-8")
+        for needle in drop_needles:
+            check(needle not in src, f"{needle} must not appear in {path.relative_to(ROOT)}")
 
 
 def test_duration_and_scrub_algorithms() -> None:
@@ -285,6 +397,9 @@ def main() -> None:
         test_duration_and_scrub_algorithms,
         test_wifi_ui_and_plist,
         test_no_now_playing_matched_geometry,
+        test_live_visible_window,
+        test_theme_black_purple_white,
+        test_three_tab_ia,
         test_project_wires_tests,
     ):
         fn()
@@ -293,7 +408,7 @@ def main() -> None:
         for f in failures:
             print(" -", f)
         raise SystemExit(1)
-    print("OK: LoveSong P0 logic contracts + XCTest wiring checks passed")
+    print("OK: LoveSong UI Refresh contracts + P0 logic + XCTest wiring checks passed")
     print("Mac: xcodebuild test -project LuluMusic/LuluMusic.xcodeproj -scheme LoveSong -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:LoveSongTests")
 
 

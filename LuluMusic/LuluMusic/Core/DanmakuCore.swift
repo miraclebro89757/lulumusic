@@ -1,5 +1,16 @@
 import Foundation
 
+enum DanmakuText {
+    static let maxCharacters = 80
+
+    static func normalized(_ text: String) -> String? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        if trimmed.count <= maxCharacters { return trimmed }
+        return String(trimmed.prefix(maxCharacters))
+    }
+}
+
 struct DanmakuRecord: Equatable, Identifiable, Codable, Hashable {
     var id: UUID
     var trackId: UUID
@@ -120,13 +131,15 @@ struct DanmakuRuntime {
     }
 
     /// Optimistic fly: enqueue on the hot path only. Persist separately.
+    /// Display-off still writes (ASSUMPTION: hide only) but does not spawn fly text.
     @discardableResult
     mutating func send(trackId: UUID, text: String, currentTimeMS: Int, now: Date = Date()) -> DanmakuRecord? {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard enabled, !trimmed.isEmpty else { return nil }
+        guard let trimmed = DanmakuText.normalized(text) else { return nil }
         let record = DanmakuRecord(trackId: trackId, timestampMS: currentTimeMS, text: trimmed, createdAt: now)
         catalog.append(record)
-        spawn(record, at: currentTimeMS, live: true)
+        if enabled {
+            spawn(record, at: currentTimeMS, live: true)
+        }
         return record
     }
 

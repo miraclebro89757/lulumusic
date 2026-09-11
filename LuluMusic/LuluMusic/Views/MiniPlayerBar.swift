@@ -1,14 +1,8 @@
 import SwiftUI
 
-enum MiniPlayerChromeStyle {
-    /// Custom glass capsule above the tab bar (iOS 17–25).
-    case fallbackDock
-    /// System Liquid Glass tab accessory (iOS 26+).
-    case systemAccessory
-}
-
 struct MiniPlayerBar: View {
     @Environment(PlayerEngine.self) private var player
+    @Environment(AppNavigation.self) private var navigation
     var style: MiniPlayerChromeStyle = .fallbackDock
 
     var body: some View {
@@ -36,7 +30,7 @@ struct MiniPlayerBar: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .contentShape(Rectangle())
-                    .onTapGesture(perform: openFullPlayer)
+                    .onTapGesture(perform: openPlayerTab)
 
                     SpotlightPlayButton(
                         isPlaying: player.isPlaying,
@@ -50,25 +44,34 @@ struct MiniPlayerBar: View {
             }
             .padding(.horizontal, style == .systemAccessory ? 10 : 14)
             .padding(.vertical, style == .systemAccessory ? 8 : 10)
+            .frame(minHeight: style == .fallbackDock ? LoveSongTheme.Space.miniBar : 0)
             .background {
                 if style == .fallbackDock {
-                    Capsule().fill(.thinMaterial)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(.ultraThinMaterial)
                 }
             }
             .overlay {
                 if style == .fallbackDock {
-                    Capsule().stroke(LoveSongTheme.hairline, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(LoveSongTheme.hairline, lineWidth: 1)
                 }
             }
             .shadow(color: style == .fallbackDock ? .black.opacity(0.35) : .clear, radius: 16, y: 6)
             .padding(.horizontal, style == .fallbackDock ? 12 : 0)
             .padding(.bottom, style == .fallbackDock ? 8 : 0)
+            .scaleEffect(1)
         }
     }
 
-    private func openFullPlayer() {
-        withAnimation(.easeInOut(duration: 0.28)) {
-            player.isFullPlayerPresented = true
-        }
+    private func openPlayerTab() {
+        navigation.tab = .player
     }
+}
+
+enum MiniPlayerChromeStyle {
+    /// Custom glass capsule above the tab bar (iOS 17–25).
+    case fallbackDock
+    /// System Liquid Glass tab accessory (iOS 26+).
+    case systemAccessory
 }

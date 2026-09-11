@@ -12,24 +12,36 @@ struct WebUploadView: View {
         ZStack {
             LoveSongTheme.stageFill
             ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: 16) {
                     Text(L10n.webUploadHint)
-                        .font(.subheadline)
+                        .font(.body)
                         .foregroundStyle(LoveSongTheme.textSecondary)
                     Text(LANBindPolicy.stayOpenBanner)
                         .font(.footnote.weight(.semibold))
-                        .foregroundStyle(LoveSongTheme.spotlight)
+                        .foregroundStyle(LoveSongTheme.textSecondary)
                         .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(LoveSongTheme.stageElevated, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(LoveSongTheme.stageElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                     statusCard
                     if server.isRunning {
                         addressCard
+                    } else {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .tint(LoveSongTheme.accent)
+                            Text(L10n.openingServer)
+                                .font(.subheadline)
+                                .foregroundStyle(LoveSongTheme.textSecondary)
+                        }
+                        .padding(.vertical, 8)
+                    }
+                    if server.lanIPs.isEmpty {
+                        permissionCard
                     }
                     uploadsCard
                 }
-                .padding(LoveSongTheme.Space.screen)
+                .padding(20)
                 .padding(.bottom, 40)
             }
         }
@@ -65,7 +77,7 @@ struct WebUploadView: View {
         StageSurface {
             HStack(spacing: 10) {
                 Circle()
-                    .fill(server.isRunning ? LoveSongTheme.spotlight : LoveSongTheme.textTertiary)
+                    .fill(server.isRunning ? LoveSongTheme.success : LoveSongTheme.textTertiary)
                     .frame(width: 8, height: 8)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(server.statusText)
@@ -74,11 +86,11 @@ struct WebUploadView: View {
                     if let error = server.lastError {
                         Text(error)
                             .font(.caption)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(LoveSongTheme.error)
                     } else if server.lanIPs.isEmpty && server.isRunning {
                         Text(L10n.noWiFi)
                             .font(.caption)
-                            .foregroundStyle(LoveSongTheme.spotlight)
+                            .foregroundStyle(LoveSongTheme.textSecondary)
                     }
                 }
                 Spacer()
@@ -106,15 +118,15 @@ struct WebUploadView: View {
                     } label: {
                         Label(copiedURL ? L10n.copied : L10n.copyURL, systemImage: copiedURL ? "checkmark" : "doc.on.doc")
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(LoveSongTheme.spotlight)
+                            .foregroundStyle(LoveSongTheme.accent)
                     }
                     Text(L10n.pairingCode)
-                        .font(.subheadline.weight(.semibold))
+                        .font(.caption)
                         .foregroundStyle(LoveSongTheme.textSecondary)
                         .padding(.top, 6)
                     Text(server.pairingDigits)
                         .font(LoveSongTheme.Font.pairing)
-                        .foregroundStyle(LoveSongTheme.spotlight)
+                        .foregroundStyle(LoveSongTheme.textPrimary)
                         .tracking(10)
                         .textSelection(.enabled)
                     Text(L10n.pairingHint)
@@ -126,7 +138,7 @@ struct WebUploadView: View {
                     } label: {
                         Label(copiedPairing ? L10n.copied : L10n.copyPairing, systemImage: copiedPairing ? "checkmark" : "doc.on.doc")
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(LoveSongTheme.spotlight)
+                            .foregroundStyle(LoveSongTheme.accent)
                     }
                     ForEach(server.lanIPs.dropFirst(), id: \.self) { ip in
                         Text("http://\(ip):\(server.port)")
@@ -135,6 +147,31 @@ struct WebUploadView: View {
                             .textSelection(.enabled)
                     }
                 }
+            }
+        }
+    }
+
+    private var permissionCard: some View {
+        StageSurface {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(L10n.wifiDenied)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(LoveSongTheme.textPrimary)
+                Text(L10n.noWiFi)
+                    .font(.footnote)
+                    .foregroundStyle(LoveSongTheme.textSecondary)
+                Button {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    Text(L10n.wifiOpenSettings)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.white)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .background(LoveSongTheme.accent, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -159,10 +196,10 @@ struct WebUploadView: View {
                             Spacer()
                             Text(task.message ?? "")
                                 .font(.caption)
-                                .foregroundStyle(task.state == .failed ? .red : LoveSongTheme.textTertiary)
+                                .foregroundStyle(task.state == .failed ? LoveSongTheme.error : LoveSongTheme.textTertiary)
                         }
                         ProgressView(value: task.fraction)
-                            .tint(LoveSongTheme.spotlight)
+                            .tint(LoveSongTheme.accent)
                         if task.totalBytes > 0 {
                             Text("\(byteText(task.bytesReceived)) / \(byteText(task.totalBytes))")
                                 .font(.caption2)

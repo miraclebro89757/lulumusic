@@ -5,37 +5,29 @@ struct ContentView: View {
     @Environment(PlayerEngine.self) private var player
     @Environment(LibraryService.self) private var library
     @Environment(\.scenePhase) private var scenePhase
-    @State private var tab: AppTab = .library
+    @State private var navigation = AppNavigation()
 
     var body: some View {
-        @Bindable var player = player
-        ZStack {
-            tabRoot
-            if player.isFullPlayerPresented {
-                FullPlayerOverlay()
-                    .transition(.opacity)
-                    .zIndex(2)
-            }
-        }
-        .animation(.easeInOut(duration: 0.28), value: player.isFullPlayerPresented)
-        .tint(LoveSongTheme.spotlight)
-        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
-        .toolbarBackground(.visible, for: .tabBar)
-        .toolbarColorScheme(.dark, for: .tabBar)
-        .onOpenURL { url in
-            guard IncomingTransfer.shouldImport(url: url) else { return }
-            Task {
-                _ = try? await library.importFile(from: url, source: .share)
-            }
-        }
-        .onChange(of: scenePhase) { _, phase in
-            if phase != .active {
-                player.persistResume()
-                if let id = player.current?.id {
-                    library.updateLastPosition(trackID: id, positionMS: player.currentTimeMS)
+        tabRoot
+            .environment(navigation)
+            .tint(LoveSongTheme.accent)
+            .toolbarBackground(.ultraThinMaterial, for: .tabBar)
+            .toolbarBackground(.visible, for: .tabBar)
+            .toolbarColorScheme(.dark, for: .tabBar)
+            .onOpenURL { url in
+                guard IncomingTransfer.shouldImport(url: url) else { return }
+                Task {
+                    _ = try? await library.importFile(from: url, source: .share)
                 }
             }
-        }
+            .onChange(of: scenePhase) { _, phase in
+                if phase != .active {
+                    player.persistResume()
+                    if let id = player.current?.id {
+                        library.updateLastPosition(trackID: id, positionMS: player.currentTimeMS)
+                    }
+                }
+            }
     }
 
     @ViewBuilder
@@ -52,44 +44,48 @@ struct ContentView: View {
     }
 
     private var legacyTabs: some View {
-        TabView(selection: $tab) {
-            LibraryView()
-                .tabItem { Label(L10n.tabLibrary, systemImage: "music.note.list") }
-                .tag(AppTab.library)
+        @Bindable var navigation = navigation
+        return TabView(selection: $navigation.tab) {
+            PlaylistView()
+                .tabItem { Label(L10n.tabPlaylist, systemImage: "list.music") }
+                .tag(AppTab.playlist)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    if tab == .library {
+                    if navigation.tab == .playlist {
                         MiniPlayerBar(style: .fallbackDock)
-                            .opacity(player.isFullPlayerPresented ? 0 : 1)
-                            .allowsHitTesting(!player.isFullPlayerPresented)
-                            .accessibilityHidden(player.isFullPlayerPresented)
                     }
                 }
 
             PlayerView()
-                .tabItem { Label(L10n.tabPlayer, systemImage: "play.circle.fill") }
+                .tabItem { Label(L10n.tabPlayer, systemImage: "opticaldisc") }
                 .tag(AppTab.player)
+
+            LiveView()
+                .tabItem { Label(L10n.tabLive, systemImage: "bubble.left.and.bubble.right") }
+                .tag(AppTab.live)
         }
     }
 
     #if compiler(>=6.2)
     @available(iOS 26.0, *)
     private var liquidGlassTabs: some View {
-        TabView(selection: $tab) {
-            LibraryView()
-                .tabItem { Label(L10n.tabLibrary, systemImage: "music.note.list") }
-                .tag(AppTab.library)
+        @Bindable var navigation = navigation
+        return TabView(selection: $navigation.tab) {
+            PlaylistView()
+                .tabItem { Label(L10n.tabPlaylist, systemImage: "list.music") }
+                .tag(AppTab.playlist)
 
             PlayerView()
-                .tabItem { Label(L10n.tabPlayer, systemImage: "play.circle.fill") }
+                .tabItem { Label(L10n.tabPlayer, systemImage: "opticaldisc") }
                 .tag(AppTab.player)
+
+            LiveView()
+                .tabItem { Label(L10n.tabLive, systemImage: "bubble.left.and.bubble.right") }
+                .tag(AppTab.live)
         }
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory {
-            if tab == .library, player.current != nil {
+            if navigation.tab == .playlist, player.current != nil {
                 MiniPlayerBar(style: .systemAccessory)
-                    .opacity(player.isFullPlayerPresented ? 0 : 1)
-                    .allowsHitTesting(!player.isFullPlayerPresented)
-                    .accessibilityHidden(player.isFullPlayerPresented)
             }
         }
     }

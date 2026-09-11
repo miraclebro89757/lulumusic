@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum AppTheme {
-    static var accent: Color { LoveSongTheme.spotlight }
+    static var accent: Color { LoveSongTheme.accent }
     static var stageBlack: Color { LoveSongTheme.stageBackground }
 
     static func hashGradient(for seed: String) -> LinearGradient {

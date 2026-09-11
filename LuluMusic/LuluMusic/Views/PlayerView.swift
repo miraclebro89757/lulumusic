@@ -1,21 +1,28 @@
+import SwiftData
 import SwiftUI
+import UIKit
 
 struct PlayerView: View {
     @Environment(PlayerEngine.self) private var player
     @Environment(DanmakuService.self) private var danmakuService
-    var showsDismiss = false
+    @Environment(AppNavigation.self) private var navigation
+    @Environment(LibraryService.self) private var library
+    @Query(sort: \Track.dateAdded, order: .reverse) private var tracks: [Track]
 
     @State private var runtime = DanmakuRuntime(store: InMemoryDanmakuStore())
     @State private var draft = ""
     @State private var inspected: FlyingDanmaku?
     @FocusState private var danmakuFocused: Bool
-    @State private var chromeReady = false
-    @State private var waveformPeaks: [Float] = []
+    @State private var showPhrases = false
+    @State private var venueDraft = ""
+    @State private var editingVenue = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         GeometryReader { proxy in
-            let artworkSide = min(proxy.size.width - 24, proxy.size.height * 0.54)
+            let artworkSide = min(LoveSongTheme.Space.coverMax, min(proxy.size.width - 24, proxy.size.height * 0.42))
             ZStack {
+                LoveSongTheme.stageBackground.ignoresSafeArea()
                 ConcertStageBackground(
                     url: player.current?.artworkURL,
                     seed: (player.current?.title ?? "") + (player.current?.artist ?? "empty")
@@ -23,78 +30,101 @@ struct PlayerView: View {
                 .contentShape(Rectangle())
                 .onTapGesture { danmakuFocused = false }
 
-                VStack(spacing: 0) {
-                    header
-                        .padding(.horizontal, LoveSongTheme.Space.screen)
-                        .padding(.top, 4)
-                        .opacity(chromeOpacity)
-
-                    Spacer(minLength: 8)
-
-                    coverStack(side: artworkSide)
-                        .padding(.horizontal, 12)
-
-                    Spacer(minLength: 14)
-
-                    metadata
-                        .padding(.horizontal, LoveSongTheme.Space.screen)
-                        .opacity(chromeOpacity)
-
-                    ConcertScrubber(
-                        current: player.currentTime,
-                        duration: player.duration,
-                        peaks: waveformPeaks,
-                        enabled: player.current != nil,
-                        accent: CoverPalette.waveformTint(from: player.current?.artworkURL)
-                    ) { player.seek(to: $0) }
-                    .padding(.horizontal, LoveSongTheme.Space.screen)
-                    .padding(.top, 14)
-                    .opacity(chromeOpacity)
-
-                    PlayerTransport(
-                        isPlaying: player.isPlaying,
-                        enabled: player.current != nil,
-                        playbackMode: player.playbackMode,
-                        modeTitle: player.playbackModeTitle,
-                        onMode: { player.cyclePlaybackMode() },
-                        onPrevious: { player.playPrevious() },
-                        onPlayPause: { player.togglePlayPause() },
-                        onNext: { player.playNext() }
+                if player.current == nil {
+                    EmptyStateView(
+                        systemImage: "opticaldisc",
+                        title: L10n.noTrack,
+                        primaryTitle: L10n.pickFromLibrary,
+                        primaryAction: { navigation.tab = .playlist }
                     )
-                    .padding(.horizontal, LoveSongTheme.Space.screen)
-                    .padding(.top, 12)
-                    .opacity(chromeOpacity)
+                } else {
+                    VStack(spacing: 0) {
+                        header
+                            .padding(.horizontal, LoveSongTheme.Space.screen)
+                            .padding(.top, 4)
 
-                    Spacer(minLength: 4)
+                        Spacer(minLength: 12)
+
+                        coverStack(side: artworkSide)
+                            .padding(.horizontal, 12)
+
+                        Spacer(minLength: 16)
+
+                        metadata
+                            .padding(.horizontal, LoveSongTheme.Space.screen)
+
+                        VenueGlassStrip(
+                            text: player.current?.venueTag ?? "",
+                            onOpenLive: { navigation.tab = .live },
+                            onEdit: { beginVenueEdit() }
+                        )
+                        .padding(.horizontal, LoveSongTheme.Space.screen)
+                        .padding(.top, 12)
+
+                        Spacer(minLength: 20)
+
+                        ProgressSeekBar(
+                            current: player.currentTime,
+                            duration: player.duration,
+                            enabled: player.current != nil
+                        ) { player.seek(to: $0) }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 4)
+
+                        PlayerTransport(
+                            isPlaying: player.isPlaying,
+                            enabled: player.current != nil,
+                            playbackMode: player.playbackMode,
+                            modeTitle: player.playbackModeTitle,
+                            onMode: { player.cyclePlaybackMode() },
+                            onPrevious: { player.playPrevious() },
+                            onPlayPause: { player.togglePlayPause() },
+                            onNext: { player.playNext() }
+                        )
+                        .padding(.horizontal, LoveSongTheme.Space.screen)
+                        .padding(.top, 16)
+
+                        Spacer(minLength: 4)
+                    }
+                    .padding(.bottom, 8)
                 }
-                .padding(.bottom, 8)
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 10) {
-            GlassDanmakuComposer(
-                text: $draft,
-                enabled: player.current != nil,
-                focused: $danmakuFocused,
-                onSend: sendDanmaku
-            )
-            .padding(.horizontal, LoveSongTheme.Space.screen)
-            .padding(.bottom, 6)
-            .opacity(chromeOpacity)
+            if player.current != nil {
+                GlassDanmakuComposer(
+                    text: $draft,
+                    enabled: true,
+                    focused: $danmakuFocused,
+                    onSend: sendDanmaku,
+                    onSmile: { showPhrases = true }
+                )
+                .padding(.horizontal, LoveSongTheme.Space.screen)
+                .padding(.bottom, 6)
+            }
         }
         .foregroundStyle(LoveSongTheme.textPrimary)
         .toolbar(.hidden, for: .navigationBar)
-        .onAppear {
-            reloadDanmakuCatalog()
-            loadWaveform()
-            if showsDismiss {
-                withAnimation(.easeOut(duration: 0.28).delay(0.05)) { chromeReady = true }
-            } else {
-                chromeReady = true
-            }
+        .sheet(isPresented: $showPhrases) {
+            DanmakuModal(
+                enabled: player.current != nil,
+                onPick: { phrase in
+                    showPhrases = false
+                    sendPhrase(phrase)
+                }
+            )
+        }
+        .alert(L10n.setVenue, isPresented: $editingVenue) {
+            TextField(L10n.venuePlaceholder, text: $venueDraft)
+            Button(L10n.done) { commitVenueEdit() }
+            Button(L10n.cancel, role: .cancel) { editingVenue = false }
+        }
+        .onAppear { reloadDanmakuCatalog() }
+        .onChange(of: navigation.tab) { _, tab in
+            if tab == .player { reloadDanmakuCatalog() }
         }
         .onChange(of: player.current?.id) { _, _ in
             reloadDanmakuCatalog()
-            loadWaveform()
         }
         .onChange(of: player.currentTimeMS) { _, now in
             guard player.danmakuEnabled, let id = player.current?.id else { return }
@@ -120,36 +150,33 @@ struct PlayerView: View {
         }
     }
 
-    private var chromeOpacity: Double {
-        showsDismiss ? (chromeReady ? 1 : 0) : 1
-    }
-
     private var header: some View {
         HStack(spacing: 12) {
-            if showsDismiss {
-                GlassCircleButton(systemName: "chevron.down") {
-                    withAnimation(.easeInOut(duration: 0.28)) {
-                        player.isFullPlayerPresented = false
-                    }
-                }
-            }
-            if let tag = player.current?.venueTag, !tag.isEmpty {
-                VenueChip(text: tag)
-            }
-            Spacer(minLength: 8)
             Button {
                 player.danmakuEnabled.toggle()
             } label: {
                 Image(systemName: player.danmakuEnabled ? "captions.bubble.fill" : "captions.bubble")
                     .font(.body.weight(.medium))
-                    .frame(width: 36, height: 36)
-                    .foregroundStyle(player.danmakuEnabled ? LoveSongTheme.spotlight : LoveSongTheme.textTertiary)
+                    .frame(width: 44, height: 44)
+                    .foregroundStyle(player.danmakuEnabled ? LoveSongTheme.accent : LoveSongTheme.textTertiary)
                     .background(.ultraThinMaterial, in: Circle())
                     .overlay(Circle().stroke(LoveSongTheme.hairline, lineWidth: 1))
             }
             .accessibilityLabel(player.danmakuEnabled ? L10n.danmakuOn : L10n.danmakuOff)
+            Spacer(minLength: 8)
+            Button {
+                navigation.tab = .playlist
+            } label: {
+                Image(systemName: "list.bullet")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(LoveSongTheme.textPrimary)
+                    .frame(width: 44, height: 44)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .overlay(Circle().stroke(LoveSongTheme.hairline, lineWidth: 1))
+            }
+            .accessibilityLabel(L10n.tabPlaylist)
         }
-        .frame(minHeight: 36)
+        .frame(minHeight: 44)
     }
 
     private func coverStack(side: CGFloat) -> some View {
@@ -161,24 +188,28 @@ struct PlayerView: View {
         .frame(width: side, height: side)
         .overlay {
             if player.danmakuEnabled {
-                DanmakuOverlay(items: runtime.flying, size: CGSize(width: side, height: side)) { item in
+                DanmakuOverlay(
+                    items: runtime.flying,
+                    size: CGSize(width: side, height: side),
+                    reduceMotion: reduceMotion
+                ) { item in
                     inspected = item
                 }
                 .clipShape(RoundedRectangle(cornerRadius: PlayerChrome.coverRadius, style: .continuous))
             }
         }
-        .shadow(color: LoveSongTheme.coverShadow, radius: 28, y: 16)
-        .scaleEffect(player.isPlaying ? 1.015 : 1.0)
-        .animation(.spring(response: 0.72, dampingFraction: 0.86), value: player.isPlaying)
+        .shadow(color: LoveSongTheme.coverShadow, radius: 24, y: 12)
+        .contentShape(RoundedRectangle(cornerRadius: PlayerChrome.coverRadius, style: .continuous))
+        .onTapGesture { navigation.tab = .live }
         .frame(maxWidth: .infinity)
     }
 
     private var metadata: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Text(player.current?.title ?? L10n.noTrack)
                 .font(LoveSongTheme.Font.playerTitle)
                 .multilineTextAlignment(.center)
-                .lineLimit(2)
+                .lineLimit(1)
                 .foregroundStyle(LoveSongTheme.textPrimary)
             Text(player.current?.artist ?? L10n.pickFromLibrary)
                 .font(LoveSongTheme.Font.playerArtist)
@@ -186,6 +217,11 @@ struct PlayerView: View {
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    private func sendPhrase(_ text: String) {
+        draft = text
+        sendDanmaku()
     }
 
     private func sendDanmaku() {
@@ -196,24 +232,10 @@ struct PlayerView: View {
         draft = ""
         let ms = player.livePlayerMilliseconds()
         if let record = runtime.send(trackId: id, text: text, currentTimeMS: ms) {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
             Task { danmakuService.persist(record) }
         } else {
             draft = text
-        }
-    }
-
-    private func loadWaveform() {
-        guard let url = player.current?.fileURL else {
-            waveformPeaks = []
-            return
-        }
-        let trackID = player.current?.id
-        Task {
-            let peaks = await AudioWaveformAnalyzer.peaks(from: url)
-            await MainActor.run {
-                guard player.current?.id == trackID else { return }
-                waveformPeaks = peaks
-            }
         }
     }
 
@@ -224,51 +246,59 @@ struct PlayerView: View {
         guard let id = player.current?.id else { return }
         runtime.tick(trackId: id, currentTimeMS: player.currentTimeMS)
     }
+
+    private func beginVenueEdit() {
+        venueDraft = player.current?.venueTag ?? ""
+        editingVenue = true
+    }
+
+    private func commitVenueEdit() {
+        editingVenue = false
+        guard let id = player.current?.id,
+              let track = tracks.first(where: { $0.id == id }) else { return }
+        library.updateVenueTag(track, venueTag: venueDraft)
+    }
 }
 
 struct DanmakuOverlay: View {
     var items: [FlyingDanmaku]
     var size: CGSize
+    var reduceMotion: Bool = false
     var onLongPress: (FlyingDanmaku) -> Void
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: items.isEmpty)) { timeline in
             ZStack(alignment: .topLeading) {
-                LinearGradient(
-                    colors: [Color.black.opacity(0.18), .clear, .clear],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .allowsHitTesting(false)
-
+                Color.clear.allowsHitTesting(false)
                 ForEach(items) { item in
-                    let travel = min(1, max(0, timeline.date.timeIntervalSince(item.spawnedAt) / 6.2))
-                    let x = size.width - travel * (size.width + 180)
+                    let travel = min(1, max(0, timeline.date.timeIntervalSince(item.spawnedAt) / (reduceMotion ? 1.2 : 3.5)))
+                    let x = reduceMotion ? size.width * 0.18 : size.width - travel * (size.width + 180)
                     let laneBand = size.height * 0.58
                     let laneStart = size.height * 0.22
                     let y = laneStart + CGFloat(item.lane) * (laneBand / 3.0)
                     let fade: Double = {
                         if item.fading { return 0.18 }
+                        if reduceMotion {
+                            if travel < 0.15 { return travel / 0.15 }
+                            if travel > 0.75 { return max(0, (1 - travel) / 0.25) }
+                            return 1
+                        }
                         if travel < 0.08 { return travel / 0.08 }
                         if travel > 0.86 { return max(0, (1 - travel) / 0.14) }
                         return 1
                     }()
                     Text(item.record.text)
-                        .font(.system(size: item.record.fontSize, weight: .medium, design: .rounded))
-                        .foregroundStyle(item.lane == 1 ? LoveSongTheme.danmakuAccent : LoveSongTheme.danmaku)
+                        .font(.system(size: min(17, max(15, item.record.fontSize)), weight: .medium))
+                        .foregroundStyle(LoveSongTheme.danmaku)
+                        .shadow(color: LoveSongTheme.danmakuFlyStroke, radius: 0.5)
                         .shadow(color: .black.opacity(0.86), radius: 3, y: 1)
                         .offset(x: x, y: y)
                         .opacity(fade)
+                        .accessibilityHidden(true)
                         .onLongPressGesture { onLongPress(item) }
                 }
             }
         }
         .allowsHitTesting(true)
-    }
-}
-
-struct FullPlayerOverlay: View {
-    var body: some View {
-        PlayerView(showsDismiss: true)
     }
 }

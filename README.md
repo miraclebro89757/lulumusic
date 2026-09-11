@@ -6,13 +6,13 @@
 
 ---
 
-## 相对上一版 LuluMusic 的变化
+## 相对上一版的变化
 
-- 产品名改为 LoveSong；主界面收成 **演唱会回忆 + 播放** 两页（深色演唱会风）。
+- 主界面收成 **歌单 / 播放 / 现场** 三 Tab（黑紫白舞台风）。
 - 播放模式三态：顺序 / 单曲循环 / 随机（去掉列表循环）。
-- Wi‑Fi 导入展示 `http://IP:port`，**4 位配对码** 首次必填；进入页自动开服、离开自动停服；网页不能删歌。
-- 演唱会回忆列：歌名 / 歌手 / 现场 / 时长；可搜索现场标签。
-- 播放器常驻弹幕输入；按 `trackId + 毫秒时间戳` 本地回放（误差目标 ±300ms）。
+- Wi‑Fi 导入入口在 **歌单**；展示 `http://IP:port`，**4 位配对码** 首次必填；进入页自动开服、离开自动停服；网页不能删歌。
+- 歌单列：歌名 / 歌手 / 现场 / 时长；可搜索现场标签。
+- 播放器常驻弹幕输入；封面右→左飞幕。现场 Tab 用同一时间戳数据画左下气泡。
 - 杀掉 App 后恢复当前曲、进度、弹幕开关、播放模式。
 - 新增 `LoveSongTests`（纯逻辑，不依赖 UI）。
 
@@ -87,13 +87,13 @@ Xcode：**Product › Test**（⌘U），scheme **LoveSong**。
 3. USB 连 iPhone（iOS 17+），必要时打开开发者模式。  
 4. ⌘R 装到手机。  
 5. **设置 › 通用 › VPN 与设备管理** 信任该 Apple ID。  
-6. 网页上传：同一 Wi‑Fi，打开 **演唱会回忆** › Wi‑Fi 图标。进入该页会自动开服并弹出「本地网络」授权；电脑浏览器打开显示的 `http://IP:port`（不要用 127.0.0.1），输入 4 位配对码。上传时请保持本页打开，不要关闭或切走。
+6. 网页上传：同一 Wi‑Fi，打开 **歌单** › Wi‑Fi 图标。进入该页会自动开服并弹出「本地网络」授权；电脑浏览器打开显示的 `http://IP:port`（不要用 127.0.0.1），输入 4 位配对码。上传时请保持本页打开，不要关闭或切走。
 
 ---
 
-## 视觉（演唱会舞台）
+## 视觉（黑紫白舞台）
 
-深色优先：舞台近黑 `#0A0A0C`、追光橙 `#FF8A3D`。大封面 ZStack 舞台 + 封面色 LinearGradient；弹幕叠在封面上。播放页波形来自音频文件采样峰值（AVAssetReader），随 AVPlayer 进度着色。玻璃卡片约 24pt 圆角。MiniPlayer 为底部 `.thinMaterial` 胶囊，点按 morph 到全屏播放器。弹幕输入为底部固定栏（不可拖动）。iOS 26 Tab accessory，更早系统回落自定义胶囊。Scheme / target 未改。
+深色优先：舞台近黑 `#09060F`、强调紫 `#8B5CF6`。大封面叠层 + 封面色 LinearGradient；Player 弹幕右→左飞过封面，Live 用同源气泡。进度条可拖动 seek。玻璃卡片约 12–24pt 圆角。Playlist MiniPlayer 点按切到 **播放 Tab**（不再叠全屏 Overlay）。弹幕输入为底部固定栏。iOS 26 Tab accessory，更早系统回落自定义条。Scheme / target 未改。
 
 ---
 
@@ -101,7 +101,7 @@ Xcode：**Product › Test**（⌘U），scheme **LoveSong**。
 
 手机与电脑必须连**同一个 Wi‑Fi**（不要用个人热点当电脑侧网络，除非电脑也连这台 iPhone 热点）。
 
-1. 打开 LoveSong → **演唱会回忆** → Wi‑Fi 导入。服务应自动开始，无「开始 / 停止」按钮。
+1. 打开 LoveSong → **歌单** → Wi‑Fi 导入。服务应自动开始，无「开始 / 停止」按钮。
 2. 首次进入若弹出 **本地网络** 权限，选允许。
 3. 页面显示 `http://192.168.x.x:端口` 或 `http://10.x.x.x:端口`（应是 Wi‑Fi IPv4，不是蜂窝、不是 `127.0.0.1`）。链接与配对码都可长按/复制。
 4. 电脑浏览器打开该地址（明文 HTTP）。第一次输入 4 位配对码。
@@ -114,9 +114,9 @@ Xcode：**Product › Test**（⌘U），scheme **LoveSong**。
 
 ```
 LuluMusic/LuluMusic.xcodeproj     # scheme: LoveSong / LuluMusic
-LuluMusic/LuluMusic/Theme/        # LoveSongTheme 演唱会色板与字体
-LuluMusic/LuluMusic/Core/         # 可单测逻辑（格式、配对、模式、弹幕、恢复）
-LuluMusic/LuluMusic/Views/        # 演唱会回忆、播放器、网页上传、舞台组件、PlayerChrome
+LuluMusic/LuluMusic/Theme/        # LoveSongTheme 黑紫白色板与字体
+LuluMusic/LuluMusic/Core/         # 可单测逻辑（格式、配对、模式、弹幕、Live 可见窗、恢复）
+LuluMusic/LuluMusic/Views/        # 歌单、播放器、现场、网页上传、舞台组件、PlayerChrome
 LuluMusic/LoveSongTests/          # XCTest
 ```
 

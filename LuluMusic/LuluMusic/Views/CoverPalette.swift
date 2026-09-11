@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// Cover-driven atmosphere. Play/accent stay warm orange; average color only tints background/waveform.
+/// Cover-driven atmosphere. Play/accent stay purple; average color only tints background/waveform.
 enum CoverPalette {
     private static var cache: [String: Color] = [:]
 
@@ -21,8 +21,8 @@ enum CoverPalette {
     }
 
     static func waveformTint(from url: URL?) -> Color {
-        guard let avg = average(from: url) else { return LoveSongTheme.spotlight }
-        return avg.blended(with: LoveSongTheme.spotlight, t: 0.72)
+        guard let avg = average(from: url) else { return LoveSongTheme.accent }
+        return avg.blended(with: LoveSongTheme.accent, t: 0.72)
     }
 
     static func average(from url: URL?) -> Color? {

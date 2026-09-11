@@ -12,7 +12,6 @@ final class PlayerEngine {
     private(set) var currentTime: TimeInterval = 0
     private(set) var duration: TimeInterval = 0
     var navigator = PlaybackNavigator(mode: .sequential)
-    var isFullPlayerPresented = false
     var danmakuEnabled = true
     var resumeStore: ResumeStoring = UserDefaultsResumeStore()
 
