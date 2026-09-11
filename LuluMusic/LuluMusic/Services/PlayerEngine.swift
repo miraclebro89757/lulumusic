@@ -220,6 +220,7 @@ final class PlayerEngine {
 
     func removeFromQueue(trackID: UUID) {
         let wasCurrent = current?.id == trackID
+        let removedIndex = queue.firstIndex(where: { $0.id == trackID })
         queue.removeAll { $0.id == trackID }
         unshuffledQueue.removeAll { $0.id == trackID }
         if queue.isEmpty {
@@ -229,6 +230,8 @@ final class PlayerEngine {
         if wasCurrent {
             currentIndex = min(currentIndex, queue.count - 1)
             loadCurrent(autoplay: isPlaying)
+        } else if let removedIndex, removedIndex < currentIndex {
+            currentIndex -= 1
         } else if currentIndex >= queue.count {
             currentIndex = queue.count - 1
         }

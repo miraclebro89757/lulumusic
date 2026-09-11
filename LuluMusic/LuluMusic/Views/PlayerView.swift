@@ -20,6 +20,8 @@ struct PlayerView: View {
                     url: player.current?.artworkURL,
                     seed: (player.current?.title ?? "") + (player.current?.artist ?? "empty")
                 )
+                .contentShape(Rectangle())
+                .onTapGesture { danmakuFocused = false }
 
                 VStack(spacing: 0) {
                     header

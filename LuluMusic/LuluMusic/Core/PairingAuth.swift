@@ -20,7 +20,7 @@ struct PairingCode: Equatable, Hashable {
     }
 }
 
-enum PairingAuthError: Equatable {
+enum PairingAuthError: Error, Equatable {
     case malformedCode
     case mismatch
     case missingSession
