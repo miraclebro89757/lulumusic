@@ -5,7 +5,7 @@ enum LocalDanmakuIdentity {
     static let displayName = "我"
 
     /// Deterministic palette index derived from the comment id — not a user account.
-    static let avatarPalette = [
+    static let avatarPalette: [UInt32] = [
         0xF472B6,
         0xA78BFA,
         0xFACC15,
