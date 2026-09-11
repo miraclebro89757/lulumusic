@@ -460,6 +460,73 @@ def test_pixel_1to1() -> None:
     check(exists("docs/UI-SPEC-lovesong-1to1-pixel.md"), "pixel spec present")
     check("FavoriteStoreTests.swift" in read("scripts/generate_xcodeproj.py"), "favorite tests in generator")
     check("PixelChromeTests.swift" in read("scripts/generate_xcodeproj.py"), "pixel tests in generator")
+    check("testA14TimestampModelHasTrackIdAndMillisecond" in read("LuluMusic/LoveSongTests/PixelChromeTests.swift"), "A14 XCTest")
+    check("testA15DanmakuRecordHasNoSocialIdentityFields" in read("LuluMusic/LoveSongTests/PixelChromeTests.swift"), "A15 XCTest")
+    check("testA11FeaturedChipsAreImmediateSendPhrasesNotDraftOnly" in read("LuluMusic/LoveSongTests/PixelChromeTests.swift"), "A11 XCTest")
+
+
+def test_amend_must_ids() -> None:
+    """Frozen PRD Amend A01–A15. Overrides older Drop-Like."""
+    content = read("LuluMusic/LuluMusic/ContentView.swift")
+    chrome = read("LuluMusic/LuluMusic/Views/PlayerChrome.swift")
+    l10n = read("LuluMusic/LuluMusic/Theme/L10n.swift")
+    player = read("LuluMusic/LuluMusic/Views/PlayerView.swift")
+    live = read("LuluMusic/LuluMusic/Views/LiveView.swift")
+    modal = read("LuluMusic/LuluMusic/Views/DanmakuModal.swift")
+    playlist = read("LuluMusic/LuluMusic/Views/PlaylistView.swift")
+    venue = read("LuluMusic/LuluMusic/Views/StageComponents.swift")
+    comment = read("LuluMusic/LuluMusic/Models/DanmakuComment.swift")
+    record = read("LuluMusic/LuluMusic/Core/DanmakuCore.swift")
+    favorites = read("LuluMusic/LuluMusic/Core/FavoriteStore.swift")
+    identity = read("LuluMusic/LuluMusic/Core/LocalDanmakuIdentity.swift")
+    phrases = read("LuluMusic/LuluMusic/Core/DanmakuPhrasePack.swift")
+    tests = read("LuluMusic/LoveSongTests/PixelChromeTests.swift") + read("LuluMusic/LoveSongTests/FavoriteStoreTests.swift")
+
+    # A01
+    check('tabPlayer = "播放器"' in l10n and 'tabLive = "现场弹幕"' in l10n and 'tabPlaylist = "歌单"' in l10n, "A01 copy")
+    check(content.find("PlayerView()") < content.find("LiveView()") < content.find("PlaylistView()"), "A01 tab order")
+    check("Capsule()" in read("LuluMusic/LuluMusic/Views/LoveSongTabBar.swift"), "A01 purple pill")
+    check('["播放器", "现场弹幕", "歌单"]' in tests, "A01 XCTest titles")
+
+    # A02
+    check("LikeHeartButton" in chrome and "heart.fill" in chrome, "A02 purple heart control")
+    check("UserDefaults" in favorites and "func isLiked" in favorites, "A02 local persist")
+    check("testTogglePersistsLikedStateForTrack" in tests, "A02 persist XCTest")
+
+    # A03–A07
+    check("stackedCover" in player and "offset(x:" in player, "A03 stacked cover")
+    check("LiveStatusPill" in player and "liveStatusPill" in l10n, "A04 现场实况")
+    check("liveMemory" in player or "Live Memory" in player, "A05 Live Memory")
+    check("hqBadge" in venue and "onOpenLive" in venue, "A06 venue + HQ")
+    check("tab = .live" in player, "A06 tap venue/cover → 现场弹幕")
+    check("SpotlightPlayButton" in chrome and "accentGlow" in chrome, "A07 large purple play glow")
+
+    # A08–A10
+    check('displayName = "我"' in identity, "A08 display 我")
+    check("DanmakuAvatarBubble" in live and "LiveDanmakuWindow" in live, "A08 bubble chrome + timestamp window")
+    check("userId" not in comment and "nickname" not in comment, "A08/A15 no fake user fields on DanmakuComment")
+    check("Luna" not in live and "阿哲" not in live, "A08 no seeded multi-user nicks in Live")
+    check("chevron.left" in live, "A09 back")
+    check("LiveComposerPill" in live and "paperplane.fill" in live, "A10 input send")
+    check("showDanmakuModal" in live, "A10 smile → modal")
+
+    # A11
+    check("现场封神" in phrases and "万人大合唱" in phrases, "A11 chips")
+    check("onSend(phrase)" in modal, "A11 chip tap sends immediately")
+    check("xmark" in modal and "danmakuModalHint" in modal, "A11 close + hint")
+
+    # A12–A13
+    check("playlistTitle" in playlist and "plus" in playlist, "A12 card +")
+    check("playlistReturn" in playlist and "tab = .player" in playlist, "A13 返回当前播放")
+    check("WebUploadView" in playlist, "A14 Wi-Fi from playlist")
+
+    # A14
+    check("trackId" in record and "timestampMS" in record, "A14 timestamp model")
+    check("spawnLeadMS: Int = 500" in record, "A14 500ms lead kept")
+
+    # A15
+    check("userId" not in comment, "A15 no userId")
+    check("FloatingHeart" not in live, "A15/A16 no social hearts")
 
 
 def test_duration_and_scrub_algorithms() -> None:
@@ -493,6 +560,7 @@ def main() -> None:
         test_theme_black_purple_white,
         test_three_tab_ia,
         test_pixel_1to1,
+        test_amend_must_ids,
         test_project_wires_tests,
     ):
         fn()

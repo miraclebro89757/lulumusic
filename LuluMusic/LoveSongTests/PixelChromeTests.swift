@@ -45,4 +45,29 @@ final class PixelChromeTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(first, 0)
         XCTAssertLessThan(first, LocalDanmakuIdentity.avatarPalette.count)
     }
+
+    func testA14TimestampModelHasTrackIdAndMillisecond() {
+        let track = UUID()
+        let record = DanmakuRecord(trackId: track, timestampMS: 12_500, text: "现场封神")
+        XCTAssertEqual(record.trackId, track)
+        XCTAssertEqual(record.timestampMS, 12_500)
+    }
+
+    func testA15DanmakuRecordHasNoSocialIdentityFields() {
+        let record = DanmakuRecord(trackId: UUID(), timestampMS: 1, text: "我")
+        let names = Set(Mirror(reflecting: record).children.compactMap(\.label))
+        XCTAssertFalse(names.contains("userId"))
+        XCTAssertFalse(names.contains("nickname"))
+        XCTAssertFalse(names.contains("displayName"))
+        XCTAssertFalse(names.contains("avatarURL"))
+        XCTAssertTrue(names.contains("trackId"))
+        XCTAssertTrue(names.contains("timestampMS"))
+        XCTAssertTrue(names.contains("text"))
+    }
+
+    func testA11FeaturedChipsAreImmediateSendPhrasesNotDraftOnly() {
+        XCTAssertEqual(DanmakuPhrasePack.featured.count, 4)
+        XCTAssertFalse(DanmakuPhrasePack.featured.contains("Luna"))
+        XCTAssertFalse(DanmakuPhrasePack.featured.contains("阿哲"))
+    }
 }
