@@ -117,9 +117,15 @@ struct LiveView: View {
                 Rectangle()
                     .fill(Color.white.opacity(0.22))
                     .frame(width: 1, height: 12)
-                Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(LoveSongTheme.textSecondary)
+                Button(action: {}) {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(LoveSongTheme.textSecondary)
+                        .frame(width: 22, height: 22)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityHidden(true)
             }
             .padding(.horizontal, 12)
             .frame(height: 36)
@@ -205,18 +211,19 @@ struct DanmakuAvatarBubble: View {
             HStack(spacing: 6) {
                 Text(LocalDanmakuIdentity.displayName(for: record))
                     .font(LoveSongTheme.Font.bubbleName)
-                    .foregroundStyle(LoveSongTheme.textPrimary)
+                    .foregroundStyle(Color(hex: LocalDanmakuIdentity.avatarHex(for: record.id)))
                 Text(record.text)
                     .font(LoveSongTheme.Font.body)
                     .foregroundStyle(LoveSongTheme.textPrimary)
                     .lineLimit(4)
             }
         }
-        .padding(.leading, 8)
+        .padding(.leading, 6)
         .padding(.trailing, 14)
-        .padding(.vertical, 8)
-        .background(Color.black.opacity(0.58), in: Capsule())
-        .overlay(Capsule().stroke(Color.white.opacity(0.08), lineWidth: 1))
+        .padding(.vertical, 7)
+        .background(.ultraThinMaterial.opacity(0.35), in: Capsule())
+        .background(Color.black.opacity(0.62), in: Capsule())
+        .overlay(Capsule().stroke(Color.white.opacity(0.10), lineWidth: 1))
         .accessibilityLabel("弹幕：\(record.text)")
     }
 }
@@ -252,15 +259,14 @@ struct LiveComposerPill: View {
 
             Button(action: onSend) {
                 Image(systemName: "paperplane.fill")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.white)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(LoveSongTheme.accentBright)
                     .frame(width: 40, height: 40)
-                    .background(LoveSongTheme.accent, in: Circle())
-                    .shadow(color: LoveSongTheme.accentGlow.opacity(0.45), radius: 10, y: 0)
+                    .background(Circle().fill(Color.white.opacity(0.08)))
             }
             .buttonStyle(.plain)
             .disabled(!enabled || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .opacity(enabled && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 1 : 0.45)
+            .opacity(enabled ? 1 : 0.45)
             .accessibilityLabel(L10n.danmakuSend)
         }
         .padding(.leading, 6)

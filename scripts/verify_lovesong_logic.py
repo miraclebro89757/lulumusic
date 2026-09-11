@@ -407,6 +407,7 @@ def test_pixel_1to1() -> None:
     check("case player" in chrome and chrome.find("case player") < chrome.find("case live") < chrome.find("case playlist"), "AppTab case order player/live/playlist")
     check("AppTab.allCases" in tabbar, "custom tab iterates allCases")
     check("Capsule()" in tabbar, "active tab is purple pill")
+    check("HStack(spacing: 6)" in tabbar, "A01 tab icon+label are horizontal like PNG")
     player_idx = content.find("PlayerView()")
     live_idx = content.find("LiveView()")
     playlist_idx = content.find("PlaylistView()")
@@ -440,6 +441,7 @@ def test_pixel_1to1() -> None:
     check("danmakuModalHint" in modal or "发弹幕参与现场互动" in modal, "A11 hint")
     check("xmark" in modal, "A11 close")
     check("keyboard" in modal, "A11 footer keyboard")
+    check("Rectangle()" in modal and "footerIcon" in modal, "A11 footer separator + icons")
     check(".sheet" not in modal, "A11 not a system sheet grid")
     check("现场封神" in phrases and "永远的经典" in phrases, "featured chips in pack")
 

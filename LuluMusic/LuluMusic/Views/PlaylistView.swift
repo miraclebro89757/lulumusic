@@ -24,23 +24,23 @@ struct PlaylistView: View {
         ZStack {
             LoveSongTheme.stageFill
             VStack(spacing: 0) {
-                Spacer(minLength: 36)
                 playlistCard
-                Spacer(minLength: 20)
+                    .padding(.top, 56)
+                Spacer(minLength: 16)
                 Button {
                     navigation.tab = .player
                 } label: {
                     Text(L10n.playlistReturn)
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(LoveSongTheme.textPrimary)
+                        .foregroundStyle(LoveSongTheme.textPrimary.opacity(0.92))
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(.ultraThinMaterial, in: Capsule())
+                        .background(Color.white.opacity(0.06), in: Capsule())
                         .overlay(Capsule().stroke(LoveSongTheme.hairline, lineWidth: 1))
                 }
                 .buttonStyle(.plain)
-                .padding(.horizontal, 22)
-                .padding(.bottom, 18)
+                .padding(.horizontal, 28)
+                .padding(.bottom, 16)
             }
         }
         .toolbar(.hidden, for: .navigationBar)
@@ -209,8 +209,9 @@ struct PlaylistTrackRow: View {
                     cornerRadius: 12
                 )
                 .frame(width: 48, height: 48)
-                .opacity(isCurrent ? 0.55 : 1)
                 if isCurrent {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(LoveSongTheme.accent.opacity(0.38))
                     Image(systemName: "play.fill")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(Color.white)
@@ -219,20 +220,22 @@ struct PlaylistTrackRow: View {
             .frame(width: 48, height: 48)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(track.title)
-                    .font(LoveSongTheme.Font.rowTitle)
-                    .foregroundStyle(LoveSongTheme.textPrimary)
-                    .lineLimit(1)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(track.title)
+                        .font(LoveSongTheme.Font.rowTitle)
+                        .foregroundStyle(LoveSongTheme.textPrimary)
+                        .lineLimit(1)
+                    Spacer(minLength: 6)
+                    Text(TimeFormat.duration(track.duration))
+                        .font(LoveSongTheme.Font.time)
+                        .foregroundStyle(LoveSongTheme.textSecondary)
+                }
                 Text(track.artist)
                     .font(LoveSongTheme.Font.rowCaption)
                     .foregroundStyle(LoveSongTheme.textSecondary)
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-
-            Text(TimeFormat.duration(track.duration))
-                .font(LoveSongTheme.Font.time)
-                .foregroundStyle(LoveSongTheme.textSecondary)
 
             Button(action: onMore) {
                 Image(systemName: "ellipsis")

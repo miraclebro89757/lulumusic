@@ -6,41 +6,43 @@ struct LoveSongTabBar: View {
     var body: some View {
         HStack(spacing: 0) {
             ForEach(AppTab.allCases, id: \.self) { tab in
+                let selected = selection == tab
                 Button {
                     selection = tab
                 } label: {
-                    VStack(spacing: 3) {
+                    HStack(spacing: 6) {
                         Image(systemName: tab.systemImage)
-                            .font(.system(size: 22, weight: .medium))
+                            .font(.system(size: 15, weight: .semibold))
                         Text(tab.title)
                             .font(LoveSongTheme.Font.tabLabel)
                             .lineLimit(1)
-                            .minimumScaleFactor(0.8)
+                            .minimumScaleFactor(0.72)
                     }
-                    .foregroundStyle(selection == tab ? Color.white : LoveSongTheme.textSecondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 7)
-                    .padding(.horizontal, 8)
+                    .foregroundStyle(selected ? Color.white : LoveSongTheme.textSecondary)
+                    .padding(.horizontal, selected ? 14 : 8)
+                    .padding(.vertical, 8)
                     .background {
-                        if selection == tab {
+                        if selected {
                             Capsule()
-                                .fill(LoveSongTheme.accent.opacity(0.36))
-                                .shadow(color: LoveSongTheme.accentGlow.opacity(0.35), radius: 10, y: 0)
+                                .fill(LoveSongTheme.accent.opacity(0.92))
+                                .shadow(color: LoveSongTheme.accentGlow.opacity(0.42), radius: 12, y: 0)
                         }
                     }
+                    .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(tab.title)
-                .accessibilityAddTraits(selection == tab ? [.isSelected] : [])
+                .accessibilityAddTraits(selected ? [.isSelected] : [])
             }
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 8)
         .padding(.top, 8)
         .padding(.bottom, 6)
         .background {
             Rectangle()
-                .fill(.ultraThinMaterial)
+                .fill(LoveSongTheme.stageElevated.opacity(0.94))
+                .background(.ultraThinMaterial)
                 .overlay(alignment: .top) {
                     Rectangle()
                         .fill(LoveSongTheme.hairline)

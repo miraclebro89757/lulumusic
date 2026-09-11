@@ -74,8 +74,12 @@ struct SpotlightPlayButton: View {
         Button(action: action) {
             ZStack {
                 Circle()
+                    .fill(LoveSongTheme.accentGlow.opacity(0.35))
+                    .frame(width: diameter + 22, height: diameter + 22)
+                    .blur(radius: 10)
+                Circle()
                     .fill(LoveSongTheme.accent)
-                    .shadow(color: LoveSongTheme.accentGlow.opacity(0.55), radius: 20, y: 0)
+                    .shadow(color: LoveSongTheme.accentGlow.opacity(0.55), radius: 18, y: 0)
                 Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: min(24, diameter * 0.42), weight: .semibold))
                     .foregroundStyle(Color.white)

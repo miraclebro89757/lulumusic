@@ -12,9 +12,8 @@ struct DanmakuModal: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.45)
-                .background(.ultraThinMaterial.opacity(0.35))
-                .ignoresSafeArea()
+            Color.black.opacity(0.42)
+                .background(.ultraThinMaterial.opacity(0.28))
                 .onTapGesture(perform: onClose)
 
             VStack(spacing: 0) {
@@ -35,12 +34,12 @@ struct DanmakuModal: View {
 
                 HStack(spacing: 10) {
                     Button(action: onToggleLike) {
-                        Image(systemName: "heart.fill")
+                        Image(systemName: liked ? "heart.fill" : "heart")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(LoveSongTheme.accent)
                             .frame(width: 44, height: 44)
-                            .overlay(Circle().stroke(LoveSongTheme.accent.opacity(0.7), lineWidth: 1.2))
-                            .shadow(color: LoveSongTheme.accentGlow.opacity(0.4), radius: 8, y: 0)
+                            .overlay(Circle().stroke(LoveSongTheme.accent.opacity(0.78), lineWidth: 1.4))
+                            .shadow(color: LoveSongTheme.accentGlow.opacity(liked ? 0.5 : 0.28), radius: 8, y: 0)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(liked ? L10n.unlike : L10n.like)
@@ -98,13 +97,18 @@ struct DanmakuModal: View {
                 }
                 .padding(.top, 16)
 
+                Rectangle()
+                    .fill(Color.white.opacity(0.10))
+                    .frame(height: 1)
+                    .padding(.top, 16)
+
                 HStack {
                     Spacer()
                     footerIcon("face.smiling") { focused = true }
                     footerIcon("bubble.left") { focused = true }
                     footerIcon("keyboard") { focused = true }
                 }
-                .padding(.top, 16)
+                .padding(.top, 10)
             }
             .padding(18)
             .background {

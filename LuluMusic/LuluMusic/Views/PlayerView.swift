@@ -23,10 +23,13 @@ struct PlayerView: View {
             let artworkSide = min(LoveSongTheme.Space.coverMax, proxy.size.width * 0.76)
             ZStack {
                 LoveSongTheme.stageBackground.ignoresSafeArea()
-                ConcertStageBackground(
-                    url: player.current?.artworkURL,
-                    seed: (player.current?.title ?? "") + (player.current?.artist ?? "empty")
+                RadialGradient(
+                    colors: [LoveSongTheme.accent.opacity(0.16), Color.clear],
+                    center: .top,
+                    startRadius: 20,
+                    endRadius: 420
                 )
+                .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     header
@@ -139,17 +142,20 @@ struct PlayerView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center, spacing: 8) {
-            Circle()
-                .fill(LoveSongTheme.accent)
-                .frame(width: 8, height: 8)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(L10n.liveMemory)
-                    .font(LoveSongTheme.Font.headerTitle)
-                    .foregroundStyle(LoveSongTheme.textPrimary)
+        HStack(alignment: .top, spacing: 8) {
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(LoveSongTheme.accent)
+                        .frame(width: 8, height: 8)
+                    Text(L10n.liveMemory)
+                        .font(LoveSongTheme.Font.headerTitle)
+                        .foregroundStyle(LoveSongTheme.textPrimary)
+                }
                 Text("\(L10n.concertLabel) · \(concertDateFull)")
                     .font(LoveSongTheme.Font.headerSub)
                     .foregroundStyle(LoveSongTheme.textSecondary)
+                    .padding(.leading, 16)
             }
             Spacer(minLength: 8)
             Button { showMore = true } label: {
@@ -171,18 +177,23 @@ struct PlayerView: View {
             ArtworkView(
                 url: player.current?.artworkURL,
                 seed: (player.current?.title ?? "rear") + "rear",
-                cornerRadius: PlayerChrome.coverRadius
+                cornerRadius: PlayerChrome.coverRadius,
+                placeholderAsset: ReferenceArt.liveStage
             )
-            .frame(width: side, height: side)
-            .opacity(0.42)
-            .offset(x: 14, y: -12)
+            .frame(width: side + 4, height: side + 4)
+            .overlay {
+                RoundedRectangle(cornerRadius: PlayerChrome.coverRadius, style: .continuous)
+                    .fill(Color(hex: 0x2E1065).opacity(0.62))
+            }
+            .offset(x: 16, y: -10)
             .allowsHitTesting(false)
 
             ZStack(alignment: .bottomLeading) {
                 ArtworkView(
                     url: player.current?.artworkURL,
                     seed: (player.current?.title ?? L10n.noTrack) + (player.current?.artist ?? ""),
-                    cornerRadius: PlayerChrome.coverRadius
+                    cornerRadius: PlayerChrome.coverRadius,
+                    placeholderAsset: ReferenceArt.liveStage
                 )
                 .frame(width: side, height: side)
 
@@ -228,7 +239,7 @@ struct PlayerView: View {
             .contentShape(RoundedRectangle(cornerRadius: PlayerChrome.coverRadius, style: .continuous))
             .onTapGesture { navigation.tab = .live }
         }
-        .frame(width: side + 14, height: side + 12)
+        .frame(width: side + 16, height: side + 10)
         .frame(maxWidth: .infinity)
     }
 
@@ -271,8 +282,9 @@ struct LiveStatusPill: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
+        .background(Color.black.opacity(0.42), in: Capsule())
         .background(.ultraThinMaterial, in: Capsule())
-        .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1))
+        .overlay(Capsule().stroke(Color.white.opacity(0.16), lineWidth: 1))
     }
 }
 

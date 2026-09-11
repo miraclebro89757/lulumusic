@@ -56,11 +56,11 @@ struct VenueGlassStrip: View {
                     Capsule().stroke(Color.white.opacity(0.42), lineWidth: 1)
                 )
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 12)
         .frame(minHeight: 48)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(LoveSongTheme.hairline, lineWidth: 1)
         )
         .contentShape(Rectangle())
