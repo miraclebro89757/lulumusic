@@ -3,72 +3,144 @@ import UIKit
 
 struct DanmakuModal: View {
     var enabled: Bool
-    var onPick: (String) -> Void
-
-    private let phrases = [
-        "起鸡皮疙瘩了",
-        "副歌太绝了",
-        "泪目",
-        "这段神仙",
-        "安可！！",
-        "好想再去一次",
-        "灯光美",
-        "声音封神"
-    ]
-    private let emojis = ["🔥", "💜", "😭", "🎤", "✨", "Encore"]
+    var liked: Bool
+    @Binding var draft: String
+    var onClose: () -> Void
+    var onToggleLike: () -> Void
+    var onSend: (String) -> Void
+    @FocusState private var focused: Bool
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                        ForEach(phrases, id: \.self) { phrase in
+        ZStack {
+            Color.black.opacity(0.42)
+                .background(.ultraThinMaterial.opacity(0.28))
+                .onTapGesture(perform: onClose)
+
+            VStack(spacing: 0) {
+                HStack {
+                    Button(action: onClose) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(LoveSongTheme.textPrimary)
+                            .frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("关闭")
+                    Spacer()
+                    Text(L10n.danmakuModalHint)
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(LoveSongTheme.textTertiary)
+                }
+
+                HStack(spacing: 10) {
+                    Button(action: onToggleLike) {
+                        Image(systemName: liked ? "heart.fill" : "heart")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(LoveSongTheme.accent)
+                            .frame(width: 44, height: 44)
+                            .overlay(Circle().stroke(LoveSongTheme.accent.opacity(0.78), lineWidth: 1.4))
+                            .shadow(color: LoveSongTheme.accentGlow.opacity(liked ? 0.5 : 0.28), radius: 8, y: 0)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(liked ? L10n.unlike : L10n.like)
+
+                    TextField(L10n.liveComposerPlaceholder, text: $draft)
+                        .textFieldStyle(.plain)
+                        .font(.subheadline)
+                        .foregroundStyle(LoveSongTheme.textPrimary)
+                        .focused($focused)
+                        .submitLabel(.send)
+                        .padding(.horizontal, 16)
+                        .frame(height: 44)
+                        .background(Color.black.opacity(0.28), in: Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(LoveSongTheme.accent.opacity(0.85), lineWidth: 1.2)
+                                .shadow(color: LoveSongTheme.accentGlow.opacity(0.55), radius: 8, y: 0)
+                        )
+                        .onSubmit(sendDraft)
+
+                    Button(action: sendDraft) {
+                        Image(systemName: "paperplane.fill")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Color.white)
+                            .frame(width: 44, height: 44)
+                            .background(LoveSongTheme.accent, in: Circle())
+                            .shadow(color: LoveSongTheme.accentGlow.opacity(0.55), radius: 12, y: 0)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!enabled)
+                    .accessibilityLabel(L10n.danmakuSend)
+                }
+                .padding(.top, 8)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(DanmakuPhrasePack.featured, id: \.self) { phrase in
                             Button {
                                 guard enabled else { return }
                                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                onPick(phrase)
+                                onSend(phrase)
                             } label: {
                                 Text(phrase)
-                                    .font(LoveSongTheme.Font.body)
+                                    .font(LoveSongTheme.Font.chip)
                                     .foregroundStyle(LoveSongTheme.textPrimary)
-                                    .frame(maxWidth: .infinity, minHeight: 44)
-                                    .padding(.horizontal, 8)
-                                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .stroke(LoveSongTheme.hairline, lineWidth: 1)
-                                    )
-                            }
-                            .buttonStyle(.plain)
-                            .disabled(!enabled)
-                        }
-                    }
-
-                    HStack(spacing: 12) {
-                        ForEach(emojis, id: \.self) { emoji in
-                            Button {
-                                guard enabled else { return }
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                onPick(emoji)
-                            } label: {
-                                Text(emoji)
-                                    .font(.title3)
-                                    .frame(width: 44, height: 44)
-                                    .background(.ultraThinMaterial, in: Circle())
+                                    .padding(.horizontal, 12)
+                                    .frame(height: 34)
+                                    .background(Color.white.opacity(0.06), in: Capsule())
+                                    .overlay(Capsule().stroke(Color.white.opacity(0.14), lineWidth: 1))
                             }
                             .buttonStyle(.plain)
                             .disabled(!enabled)
                         }
                     }
                 }
-                .padding(16)
+                .padding(.top, 16)
+
+                Rectangle()
+                    .fill(Color.white.opacity(0.10))
+                    .frame(height: 1)
+                    .padding(.top, 16)
+
+                HStack {
+                    Spacer()
+                    footerIcon("face.smiling") { focused = true }
+                    footerIcon("bubble.left") { focused = true }
+                    footerIcon("keyboard") { focused = true }
+                }
+                .padding(.top, 10)
             }
-            .background(LoveSongTheme.stageElevated.ignoresSafeArea())
-            .navigationTitle(L10n.danmakuModalTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(LoveSongTheme.stageElevated, for: .navigationBar)
+            .padding(18)
+            .background {
+                RoundedRectangle(cornerRadius: LoveSongTheme.Space.modalRadius, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: LoveSongTheme.Space.modalRadius, style: .continuous)
+                            .fill(Color(hex: 0x140C22).opacity(0.82))
+                    }
+            }
+            .overlay(
+                RoundedRectangle(cornerRadius: LoveSongTheme.Space.modalRadius, style: .continuous)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
+            )
+            .padding(.horizontal, 22)
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .onAppear { focused = true }
+    }
+
+    private func sendDraft() {
+        guard enabled, DanmakuText.normalized(draft) != nil else { return }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        onSend(draft)
+    }
+
+    private func footerIcon(_ name: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: name)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(LoveSongTheme.textTertiary)
+                .frame(width: 36, height: 36)
+        }
+        .buttonStyle(.plain)
     }
 }

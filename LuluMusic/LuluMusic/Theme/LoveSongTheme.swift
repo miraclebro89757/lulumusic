@@ -6,7 +6,9 @@ enum LoveSongTheme {
     static let stageBackground = Color(hex: 0x09060F)
     static let stageElevated = Color(hex: 0x0E0A17)
     static let accent = Color(hex: 0x8B5CF6)
+    static let accentBright = Color(hex: 0xA855F7)
     static let accentPressed = Color(hex: 0x7C3AED)
+    static let accentGlow = Color(hex: 0x8B5CF6)
     static let textPrimary = Color.white
     static let textSecondary = Color.white.opacity(0.64)
     static let textTertiary = Color.white.opacity(0.40)
@@ -25,17 +27,22 @@ enum LoveSongTheme {
     static let liveFallbackBottom = Color(hex: 0x2E1065)
 
     enum Font {
-        static let playerTitle = SwiftUI.Font.system(size: 22, weight: .bold)
-        static let playerArtist = SwiftUI.Font.system(size: 16, weight: .regular)
+        static let playerTitle = SwiftUI.Font.system(size: 19, weight: .bold)
+        static let playerArtist = SwiftUI.Font.system(size: 14, weight: .regular)
+        static let headerTitle = SwiftUI.Font.system(size: 17, weight: .bold)
+        static let headerSub = SwiftUI.Font.system(size: 13, weight: .regular)
         static let rowTitle = SwiftUI.Font.system(size: 16, weight: .medium)
         static let rowCaption = SwiftUI.Font.system(size: 13, weight: .regular)
         static let time = SwiftUI.Font.system(size: 12, weight: .regular).monospacedDigit()
-        static let chip = SwiftUI.Font.system(size: 12, weight: .semibold)
+        static let chip = SwiftUI.Font.system(size: 13, weight: .medium)
         static let wordmark = SwiftUI.Font.system(size: 20, weight: .bold)
         static let emptyTitle = SwiftUI.Font.system(size: 22, weight: .semibold)
         static let pairing = SwiftUI.Font.system(size: 32, weight: .bold).monospacedDigit()
         static let sheetTitle = SwiftUI.Font.system(size: 20, weight: .bold)
-        static let body = SwiftUI.Font.system(size: 16, weight: .regular)
+        static let body = SwiftUI.Font.system(size: 15, weight: .regular)
+        static let bubbleName = SwiftUI.Font.system(size: 13, weight: .semibold)
+        static let tabLabel = SwiftUI.Font.system(size: 11, weight: .medium)
+        static let livePill = SwiftUI.Font.system(size: 12, weight: .medium)
     }
 
     enum Space {
@@ -46,9 +53,11 @@ enum LoveSongTheme {
         static let screen: CGFloat = 16
         static let stack: CGFloat = 12
         static let heroEmpty: CGFloat = 72
-        static let coverMax: CGFloat = 290
-        static let progressTrack: CGFloat = 6
-        static let progressKnob: CGFloat = 16
+        static let coverMax: CGFloat = 304
+        static let progressTrack: CGFloat = 4
+        static let progressKnob: CGFloat = 14
+        static let modalRadius: CGFloat = 32
+        static let coverRadius: CGFloat = 26
         static let miniBar: CGFloat = 64
     }
 
@@ -95,6 +104,7 @@ enum LoveSongTheme {
         UITabBar.appearance().standardAppearance = tab
         UITabBar.appearance().scrollEdgeAppearance = tab
         UITabBar.appearance().tintColor = UIColor(accent)
+        UITabBar.appearance().isHidden = true
 
         let nav = UINavigationBarAppearance()
         nav.configureWithOpaqueBackground()

@@ -26,6 +26,10 @@ FILES = [
     ("Core", "LibrarySearch.swift", True),
     ("Core", "DanmakuCore.swift", True),
     ("Core", "LiveDanmakuWindow.swift", True),
+    ("Core", "FavoriteStore.swift", True),
+    ("Core", "ConcertDateFormat.swift", True),
+    ("Core", "LocalDanmakuIdentity.swift", True),
+    ("Core", "DanmakuPhrasePack.swift", True),
     ("Core", "WebImportPolicy.swift", True),
     ("Core", "IncomingTransfer.swift", True),
     ("Core", "PlaybackClock.swift", True),
@@ -53,6 +57,7 @@ FILES = [
     ("Views", "StageComponents.swift", True),
     ("Views", "PlayerChrome.swift", True),
     ("Views", "MiniPlayerBar.swift", True),
+    ("Views", "LoveSongTabBar.swift", True),
     ("Views", "PlayerView.swift", True),
     ("Views", "PlaylistView.swift", True),
     ("Views", "LiveView.swift", True),
@@ -73,6 +78,8 @@ TEST_FILES = [
     "TrackDurationTests.swift",
     "ScrubSeekTests.swift",
     "LiveDanmakuWindowTests.swift",
+    "FavoriteStoreTests.swift",
+    "PixelChromeTests.swift",
 ]
 
 ASSETS = "Assets.xcassets"

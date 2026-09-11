@@ -5,8 +5,8 @@ enum L10n {
     static let appNameEN = "LoveSong"
 
     static let tabPlaylist = "歌单"
-    static let tabPlayer = "播放"
-    static let tabLive = "现场"
+    static let tabPlayer = "播放器"
+    static let tabLive = "现场弹幕"
 
     static let playlistTitle = "我的歌单"
     static let searchPrompt = "搜索歌曲或现场"
@@ -44,6 +44,18 @@ enum L10n {
     static let liveEmptyTrack = "先去歌单选一首现场录音"
     static let liveEmptyDanmaku = "记下这一刻"
     static let liveBack = "返回播放"
+    static let liveMemory = "Live Memory"
+    static let liveStatusPill = "现场实况"
+    static let liveComposerPlaceholder = "发一条弹幕..."
+    static let hqBadge = "HQ"
+    static let concertLabel = "Concert"
+    static let liveLabel = "Live"
+    static let bubbleSelfName = "我"
+    static let playlistConcertCountFormat = "Concert · %d"
+    static let playlistReturn = "返回当前播放"
+    static let danmakuModalHint = "发弹幕参与现场互动"
+    static let like = "喜欢"
+    static let unlike = "取消喜欢"
 
     static let sequential = "顺序播放"
     static let shuffle = "随机播放"
@@ -78,12 +90,13 @@ enum L10n {
     static let wifiOpenSettings = "打开设置"
     static let openingServer = "正在开启服务…"
 
-    static let danmakuPlaceholder = "发弹幕…"
+    static let danmakuPlaceholder = "发一条弹幕..."
     static let danmakuSend = "发送"
     static let danmakuOn = "弹幕开"
     static let danmakuOff = "弹幕关"
     static let danmakuModalTitle = "快捷弹幕"
     static let danmakuSmile = "快捷弹幕"
+    static let danmakuPhrases = DanmakuPhrasePack.featured
 
     static let durationUnknown = "--:--"
     static let tracksUnit = "首"
@@ -97,14 +110,4 @@ enum L10n {
     static let importFailedGeneric = "导入失败"
     static let playbackFailed = "无法播放"
 
-    static let danmakuPhrases = [
-        "起鸡皮疙瘩了",
-        "副歌太绝了",
-        "泪目",
-        "这段神仙",
-        "安可！！",
-        "好想再去一次",
-        "灯光美",
-        "声音封神"
-    ]
 }
