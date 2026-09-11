@@ -43,6 +43,7 @@ final class PlayerEngine {
     private var lastResumePositionMS = -1
     private var isSeeking = false
     private var seekGeneration = 0
+    private var pendingAutoplay = false
     private var statusObserver: NSKeyValueObservation?
     private var durationObserver: NSKeyValueObservation?
 
@@ -98,15 +99,17 @@ final class PlayerEngine {
     }
 
     func play() {
-        AudioSessionController.activatePlayback()
+        _ = AudioSessionController.activatePlayback()
         guard current != nil else { return }
         if player?.currentItem == nil {
             loadCurrent(autoplay: true)
             return
         }
-        player?.play()
-        isPlaying = true
-        publishNowPlaying()
+        if let item = player?.currentItem, item.status == .failed {
+            loadCurrent(autoplay: true)
+            return
+        }
+        beginPlayback()
     }
 
     func pause() {
@@ -294,12 +297,49 @@ final class PlayerEngine {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
+
+    private func beginPlayback() {
+        _ = AudioSessionController.activatePlayback()
+        guard let player else {
+            pendingAutoplay = true
+            loadCurrent(autoplay: true)
+            return
+        }
+        if let item = player.currentItem {
+            switch item.status {
+            case .unknown:
+                pendingAutoplay = true
+                isPlaying = true
+                publishNowPlaying()
+                return
+            case .failed:
+                pendingAutoplay = true
+                loadCurrent(autoplay: true)
+                return
+            case .readyToPlay:
+                break
+            @unknown default:
+                break
+            }
+        }
+        pendingAutoplay = false
+        player.play()
+        isPlaying = true
+        publishNowPlaying()
+    }
+
     private func loadCurrent(autoplay: Bool, resume: Bool = false) {
         guard let item = current else {
             stopCompletely()
             return
         }
-        AudioSessionController.activatePlayback()
+        guard FileManager.default.fileExists(atPath: item.fileURL.path) else {
+            isPlaying = false
+            pendingAutoplay = false
+            publishNowPlaying()
+            return
+        }
+        _ = AudioSessionController.activatePlayback()
         configureRemoteIfNeeded()
 
         if let observer = timeObserver, let player {
@@ -351,8 +391,14 @@ final class PlayerEngine {
         }
 
         if autoplay {
-            player?.play()
+            pendingAutoplay = true
             isPlaying = true
+            if playerItem.status == .readyToPlay {
+                beginPlayback()
+            }
+            // else status observer will call beginPlayback when ready
+        } else {
+            pendingAutoplay = false
         }
         persistResume()
         publishNowPlaying()
@@ -362,7 +408,15 @@ final class PlayerEngine {
         applyItemDuration(playerItem)
         statusObserver = playerItem.observe(\.status, options: [.initial, .new]) { [weak self] item, _ in
             Task { @MainActor [weak self] in
-                self?.applyItemDuration(item)
+                guard let self else { return }
+                self.applyItemDuration(item)
+                if item.status == .readyToPlay, self.pendingAutoplay {
+                    self.beginPlayback()
+                } else if item.status == .failed {
+                    self.isPlaying = false
+                    self.pendingAutoplay = false
+                    self.publishNowPlaying()
+                }
             }
         }
         durationObserver = playerItem.observe(\.duration, options: [.new]) { [weak self] item, _ in
