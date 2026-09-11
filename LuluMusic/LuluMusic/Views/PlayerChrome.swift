@@ -223,8 +223,8 @@ struct PlayerTransport: View {
 struct ConcertScrubber: View {
     var current: TimeInterval
     var duration: TimeInterval
+    var peaks: [Float]
     var enabled: Bool = true
-    var seed: String = ""
     var accent: Color = LoveSongTheme.spotlight
     var onSeek: (TimeInterval) -> Void
 
@@ -238,16 +238,27 @@ struct ConcertScrubber: View {
         CGFloat(min(1, max(0, shown / span)))
     }
 
+    private var bars: [Float] {
+        if peaks.count == barCount { return peaks }
+        if peaks.isEmpty { return Array(repeating: 0.22, count: barCount) }
+        return WaveformPeakSampler.downsample(samples: peaks, barCount: barCount)
+    }
+
     var body: some View {
         VStack(spacing: 8) {
             GeometryReader { geo in
-                let heights = Self.bars(seed: seed, count: barCount)
+                let heights = bars
+                let playhead = WaveformPeakSampler.playheadBarIndex(
+                    currentMS: PlaybackClock.milliseconds(fromPlayerSeconds: shown),
+                    durationMS: PlaybackClock.milliseconds(fromPlayerSeconds: duration),
+                    barCount: barCount
+                )
                 HStack(alignment: .center, spacing: 2) {
                     ForEach(0..<barCount, id: \.self) { index in
-                        let played = CGFloat(index) / CGFloat(barCount) <= fraction
+                        let played = index <= playhead && fraction > 0
                         Capsule()
                             .fill(played ? accent : LoveSongTheme.textTertiary.opacity(0.42))
-                            .frame(height: max(4, geo.size.height * heights[index]))
+                            .frame(height: max(4, geo.size.height * CGFloat(0.22 + heights[index] * 0.78)))
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -264,17 +275,6 @@ struct ConcertScrubber: View {
             }
             .font(LoveSongTheme.Font.time)
             .foregroundStyle(LoveSongTheme.textTertiary)
-        }
-    }
-
-    private static func bars(seed: String, count: Int) -> [CGFloat] {
-        var hasher = Hasher()
-        hasher.combine(seed)
-        var value = hasher.finalize()
-        return (0..<count).map { i in
-            value = value &* 16_777_619 &+ i
-            let n = Int(UInt(bitPattern: value) % 100)
-            return 0.26 + CGFloat(n) / 100 * 0.74
         }
     }
 
@@ -317,71 +317,39 @@ struct GlassDanmakuComposer: View {
     var focused: FocusState<Bool>.Binding
     var onSend: () -> Void
 
-    @State private var lift: CGFloat = 0
-    @GestureState private var dragLift: CGFloat = 0
-
     var body: some View {
-        VStack(spacing: 8) {
-            Capsule()
-                .fill(Color.white.opacity(0.32))
-                .frame(width: 36, height: 4)
-                .padding(.top, 6)
-                .padding(.bottom, 2)
-                .frame(maxWidth: .infinity)
-                .contentShape(Rectangle())
-                .gesture(drag, including: focused.wrappedValue ? .none : .gesture)
-                .accessibilityHidden(true)
-            HStack(spacing: 10) {
-                TextField(L10n.danmakuPlaceholder, text: $text)
-                    .textFieldStyle(.plain)
-                    .font(.subheadline)
-                    .foregroundStyle(LoveSongTheme.textPrimary)
-                    .focused(focused)
-                    .submitLabel(.send)
-                    .onSubmit(onSend)
-                Button(action: onSend) {
-                    Text(L10n.danmakuSend)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(LoveSongTheme.stageBackground)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(LoveSongTheme.spotlight, in: Capsule())
-                }
-                .disabled(!enabled || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                .opacity(enabled && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 1 : 0.35)
+        HStack(spacing: 10) {
+            TextField(L10n.danmakuPlaceholder, text: $text)
+                .textFieldStyle(.plain)
+                .font(.subheadline)
+                .foregroundStyle(LoveSongTheme.textPrimary)
+                .focused(focused)
+                .submitLabel(.send)
+                .onSubmit(onSend)
+            Button(action: onSend) {
+                Text(L10n.danmakuSend)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(LoveSongTheme.stageBackground)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(LoveSongTheme.spotlight, in: Capsule())
             }
-            .padding(.horizontal, 14)
-            .padding(.bottom, 10)
+            .disabled(!enabled || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .opacity(enabled && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 1 : 0.35)
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
         .background {
-            Capsule(style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .overlay {
-                    Capsule(style: .continuous)
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(LoveSongTheme.danmakuBarFill.opacity(0.55))
                 }
         }
         .overlay(
-            Capsule(style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(LoveSongTheme.hairline, lineWidth: 1)
         )
-        .offset(y: focused.wrappedValue ? 0 : lift + dragLift)
-        .onChange(of: focused.wrappedValue) { _, on in
-            if on {
-                withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) { lift = 0 }
-            }
-        }
-        .animation(.spring(response: 0.32, dampingFraction: 0.86), value: lift)
-    }
-
-    private var drag: some Gesture {
-        DragGesture(minimumDistance: 8)
-            .updating($dragLift) { value, state, _ in
-                state = min(20, max(-150, value.translation.height))
-            }
-            .onEnded { value in
-                let next = min(0, max(-150, lift + value.translation.height))
-                lift = next > -20 ? 0 : next
-            }
     }
 }

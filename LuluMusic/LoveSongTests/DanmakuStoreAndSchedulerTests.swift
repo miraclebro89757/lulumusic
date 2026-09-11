@@ -39,7 +39,23 @@ final class DanmakuStoreAndSchedulerTests: XCTestCase {
         XCTAssertEqual(runtime.flying.first?.record.text, "安可")
         XCTAssertTrue(runtime.flying.first?.isLiveSend == true)
         XCTAssertLessThanOrEqual(elapsedMS, Double(runtime.scheduler.sendAppearBudgetMS) + 50)
-        XCTAssertEqual(store.records(for: track).count, 1)
+        XCTAssertEqual(record?.timestampMS, 1_200)
+    }
+
+    func testOptimisticSendFliesBeforeSlowPersist() {
+        let store = SlowDanmakuStore(delayMS: 180)
+        var runtime = DanmakuRuntime(store: store)
+        let track = UUID()
+        let playerMS = PlaybackClock.milliseconds(fromPlayerSeconds: 3.25)
+        let start = Date()
+        let record = runtime.send(trackId: track, text: "立刻飞", currentTimeMS: playerMS)
+        let elapsedMS = Date().timeIntervalSince(start) * 1000
+        XCTAssertEqual(record?.timestampMS, 3_250)
+        XCTAssertEqual(runtime.flying.first?.record.text, "立刻飞")
+        XCTAssertLessThanOrEqual(elapsedMS, Double(runtime.scheduler.sendAppearBudgetMS))
+        XCTAssertTrue(store.inserted.isEmpty, "persist must stay off the send path")
+        runtime.persist(record!)
+        XCTAssertEqual(store.inserted.map(\.text), ["立刻飞"])
     }
 
     func testReplayTickSpawnsSameTextAtSameTime() {
@@ -76,5 +92,23 @@ final class DanmakuStoreAndSchedulerTests: XCTestCase {
         var runtime = DanmakuRuntime(store: InMemoryDanmakuStore())
         XCTAssertNil(runtime.send(trackId: UUID(), text: "   ", currentTimeMS: 0))
         XCTAssertTrue(runtime.flying.isEmpty)
+    }
+}
+
+private final class SlowDanmakuStore: DanmakuStoring {
+    var delayMS: UInt32
+    var inserted: [DanmakuRecord] = []
+
+    init(delayMS: UInt32) {
+        self.delayMS = delayMS
+    }
+
+    func insert(_ record: DanmakuRecord) {
+        usleep(delayMS * 1_000)
+        inserted.append(record)
+    }
+
+    func records(for trackId: UUID) -> [DanmakuRecord] {
+        inserted.filter { $0.trackId == trackId }
     }
 }

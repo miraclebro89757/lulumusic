@@ -12,9 +12,13 @@ final class DanmakuService: DanmakuStoring {
 
     private var context: ModelContext { container.mainContext }
 
-    func insert(_ record: DanmakuRecord) {
+    func persist(_ record: DanmakuRecord) {
         context.insert(DanmakuComment(from: record))
         try? context.save()
+    }
+
+    func insert(_ record: DanmakuRecord) {
+        persist(record)
     }
 
     func records(for trackId: UUID) -> [DanmakuRecord] {
