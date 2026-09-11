@@ -13,6 +13,10 @@ final class WebImportPolicyTests: XCTestCase {
         XCTAssertFalse(LANBindPolicy.isAdvertisableLAN("8.8.8.8"))
         XCTAssertFalse(LANBindPolicy.shouldBindInterface("pdp_ip0"))
         XCTAssertTrue(LANBindPolicy.shouldBindInterface("en0"))
+        XCTAssertEqual(
+            LANBindPolicy.advertisedURL(ips: ["10.0.0.5", "172.20.10.1"], port: 8787),
+            "http://10.0.0.5:8787"
+        )
     }
 
     func testPrefersWiFiIPv4OverCellularLoopbackAndTenDotVPN() {
@@ -27,6 +31,13 @@ final class WebImportPolicyTests: XCTestCase {
         XCTAssertEqual(
             LANBindPolicy.advertisedURL(from: candidates, port: 8787),
             "http://192.168.1.42:8787"
+        )
+        XCTAssertEqual(
+            LANBindPolicy.advertisedIPv4(from: [
+                LANInterfaceAddress(name: "en0", ip: "10.0.0.5"),
+                LANInterfaceAddress(name: "en2", ip: "172.20.10.1")
+            ]),
+            "10.0.0.5"
         )
         XCTAssertNil(
             LANBindPolicy.advertisedIPv4(from: [
@@ -53,7 +64,7 @@ final class WebImportPolicyTests: XCTestCase {
         XCTAssertFalse(WebImportLifecycle.shouldServe(pageVisible: false, phase: .foregroundActive))
         XCTAssertFalse(WebImportLifecycle.shouldServe(pageVisible: true, phase: .background))
         XCTAssertFalse(WebImportLifecycle.shouldServe(pageVisible: true, phase: .locked))
-        XCTAssertFalse(WebImportLifecycle.shouldServe(pageVisible: true, phase: .inactive))
+        XCTAssertTrue(WebImportLifecycle.shouldServe(pageVisible: true, phase: .inactive))
     }
 
     func testUploadRequiresAuthAndDeleteIsRejected() {

@@ -38,4 +38,14 @@ final class WaveformPeaksTests: XCTestCase {
         XCTAssertEqual(peaks.count, 8)
         XCTAssertTrue(peaks.allSatisfy { $0 == 0 })
     }
+
+    func testTimeMappedPeaksSpanFullDurationNotJustPrefix() {
+        var peaks = Array(repeating: Float(0), count: 10)
+        WaveformPeakSampler.accumulate(amplitude: 1, atMS: 0, durationMS: 100_000, into: &peaks)
+        WaveformPeakSampler.accumulate(amplitude: 0.8, atMS: 90_000, durationMS: 100_000, into: &peaks)
+        let normalized = WaveformPeakSampler.normalize(peaks)
+        XCTAssertGreaterThan(normalized[0], 0.9)
+        XCTAssertGreaterThan(normalized[9], 0.7)
+        XCTAssertLessThan(normalized[4], 0.15)
+    }
 }

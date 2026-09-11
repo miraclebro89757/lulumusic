@@ -240,11 +240,11 @@ final class HTTPListenerEngine: @unchecked Sendable {
         let tcp = NWProtocolTCP.Options()
         let parameters = NWParameters(tls: nil, tcp: tcp)
         parameters.allowLocalEndpointReuse = true
-        parameters.acceptLocalOnly = false
-        parameters.includePeerToPeer = true
-        parameters.allowFastOpen = true
+        parameters.acceptLocalOnly = LANBindPolicy.listenerAcceptLocalOnly
+        parameters.includePeerToPeer = LANBindPolicy.listenerIncludePeerToPeer
         parameters.prohibitedInterfaceTypes = [.cellular, .loopback]
-        if let ipOptions = parameters.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+        if LANBindPolicy.listenerBindsIPv4,
+           let ipOptions = parameters.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
             ipOptions.version = .v4
         }
         let nwPort = NWEndpoint.Port(rawValue: port) ?? .any

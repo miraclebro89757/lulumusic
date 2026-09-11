@@ -72,7 +72,6 @@ struct PlayerView: View {
                 .padding(.bottom, 8)
             }
         }
-        .ignoresSafeArea(.keyboard)
         .safeAreaInset(edge: .bottom, spacing: 10) {
             GlassDanmakuComposer(
                 text: $draft,
@@ -205,7 +204,7 @@ struct PlayerView: View {
         draft = ""
         let ms = player.livePlayerMilliseconds()
         if let record = runtime.send(trackId: id, text: text, currentTimeMS: ms) {
-            danmakuService.persist(record)
+            Task { danmakuService.persist(record) }
         } else {
             draft = text
         }

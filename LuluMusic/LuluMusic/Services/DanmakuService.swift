@@ -12,21 +12,13 @@ final class DanmakuService: DanmakuStoring {
 
     private var context: ModelContext { container.mainContext }
 
-    func insert(_ record: DanmakuRecord) {
-        persistOnBackground(record)
-    }
-
     func persist(_ record: DanmakuRecord) {
-        persistOnBackground(record)
+        context.insert(DanmakuComment(from: record))
+        try? context.save()
     }
 
-    private func persistOnBackground(_ record: DanmakuRecord) {
-        let modelContainer = container
-        Task.detached(priority: .utility) {
-            let context = ModelContext(modelContainer)
-            context.insert(DanmakuComment(from: record))
-            try? context.save()
-        }
+    func insert(_ record: DanmakuRecord) {
+        persist(record)
     }
 
     func records(for trackId: UUID) -> [DanmakuRecord] {

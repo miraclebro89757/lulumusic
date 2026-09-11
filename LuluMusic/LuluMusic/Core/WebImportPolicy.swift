@@ -10,7 +10,7 @@ enum AppRuntimePhase: Equatable {
 enum WebImportLifecycle {
     /// Server runs only while the import page is visible in the foreground (F02).
     static func shouldServe(pageVisible: Bool, phase: AppRuntimePhase) -> Bool {
-        pageVisible && phase == .foregroundActive
+        pageVisible && (phase == .foregroundActive || phase == .inactive)
     }
 }
 
@@ -44,8 +44,7 @@ enum LANBindPolicy {
     }
 
     static func advertisedURL(ips: [String], port: UInt16) -> String? {
-        let ranked = ips.filter(isAdvertisableLAN).sorted { ipRank($0) < ipRank($1) }
-        guard let ip = ranked.first else { return nil }
+        guard let ip = ips.first(where: isAdvertisableLAN) else { return nil }
         return "http://\(ip):\(port)"
     }
 

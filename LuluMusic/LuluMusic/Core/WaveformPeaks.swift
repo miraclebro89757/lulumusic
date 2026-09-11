@@ -26,6 +26,18 @@ enum WaveformPeakSampler {
         return min(bars - 1, Int(fraction * Double(bars)))
     }
 
+    static func accumulate(amplitude: Float, atMS: Int, durationMS: Int, into peaks: inout [Float]) {
+        guard !peaks.isEmpty else { return }
+        let index = playheadBarIndex(currentMS: atMS, durationMS: durationMS, barCount: peaks.count)
+        peaks[index] = max(peaks[index], abs(amplitude))
+    }
+
+    static func normalize(_ peaks: [Float]) -> [Float] {
+        let peak = peaks.max() ?? 0
+        guard peak > 0 else { return peaks }
+        return peaks.map { $0 / peak }
+    }
+
     /// Hashed title-seed bars are uniformly mid/high with no silence. Real audio is not.
     static func looksLikeHashedDecoration(_ peaks: [Float]) -> Bool {
         guard peaks.count >= 8 else { return false }
