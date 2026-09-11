@@ -9,7 +9,6 @@ Mac source of truth:
 from __future__ import annotations
 
 from pathlib import Path
-import re
 
 ROOT = Path("/workspace")
 failures: list[str] = []
@@ -158,69 +157,39 @@ def test_wifi_ui_and_plist() -> None:
     check("QRCodeImage.swift" not in read("scripts/generate_xcodeproj.py"), "QR file dropped from project")
 
 
-def test_matched_geometry_single_source() -> None:
+def test_no_now_playing_matched_geometry() -> None:
+    """Shared-element morph is removed so mini + player tab + overlay can coexist."""
     chrome = read("LuluMusic/LuluMusic/Views/PlayerChrome.swift")
     mini = read("LuluMusic/LuluMusic/Views/MiniPlayerBar.swift")
     player = read("LuluMusic/LuluMusic/Views/PlayerView.swift")
     content = read("LuluMusic/LuluMusic/ContentView.swift")
-    tests = read("LuluMusic/LoveSongTests/NowPlayingMatchedGeometryTests.swift")
-    check("enum NowPlayingMatchedGeometry" in chrome, "exclusive-source helper")
-    check("case .miniPlayer, .playerTab:" in chrome, "collapsed surfaces share !presented")
-    check("return !isFullPlayerPresented" in chrome, "mini/tab isSource: !isFullPlayerPresented")
-    check("static func isSource(" in chrome, "isSource gate")
-    check("static func participates(" in chrome, "participates gate")
-    check("var isActive: Bool" in chrome, "matchedGeometry can leave the group")
-    check("NowPlayingMatchedGeometry.isSource" in mini, "mini uses shared isSource")
-    check("NowPlayingMatchedGeometry.participates" in mini, "mini uses participates")
-    check("NowPlayingMatchedGeometry.isSource" in player, "player uses shared isSource")
-    check("NowPlayingMatchedGeometry.participates" in player, "player uses participates")
-    check("NowPlayingCoverMatch(isSource:" in mini and "isActive:" in mini, "mini cover isActive")
-    check("NowPlayingPlayMatch(isSource:" in mini and "isActive:" in mini, "mini play isActive")
-    check("playMatchActive:" in player, "full player play match gated")
-    check("NowPlayingCoverMatch(isSource:" in player and "isActive:" in player, "player cover isActive")
-    check("testAtMostOneSourceForEveryPresentationState" in tests, "exclusivity XCTest")
-    check("testMiniStaysInGroupWhileFullPlayerPresents" in tests, "transition XCTest")
-    # Mini bar must stay mounted while the overlay is up so isSource can flip to false.
-    check(
-        re.search(r"!player\.isFullPlayerPresented[\s\S]{0,80}MiniPlayerBar", content) is None,
-        "mini bar must stay mounted during full player (do not unmount on isFullPlayerPresented)",
-    )
-    # Logic twin of NowPlayingMatchedGeometry.isSource — at most one source in every state.
-    for tab in ("library", "player"):
-        for presented in (False, True):
-            sources = [
-                surface
-                for surface in ("miniPlayer", "playerTab", "fullPlayer")
-                if _matched_geometry_is_source(surface, tab, presented)
-            ]
-            check(
-                len(sources) <= 1,
-                f"logic twin dual source tab={tab} presented={presented} sources={sources}",
-            )
-    check(_matched_geometry_is_source("miniPlayer", "library", False), "mini source when collapsed")
-    check(not _matched_geometry_is_source("miniPlayer", "library", True), "mini not source when presented")
-    check(_matched_geometry_is_source("fullPlayer", "library", True), "full source when presented")
-    check(_matched_geometry_is_source("fullPlayer", "player", True), "full source from player tab")
-    check(not _matched_geometry_is_source("playerTab", "player", True), "player tab yields while presented")
-
-
-def _matched_geometry_is_source(surface: str, tab: str, presented: bool) -> bool:
-    participates = (
-        (surface == "miniPlayer" and tab == "library")
-        or (surface == "playerTab" and tab == "player")
-        or (surface == "fullPlayer" and presented)
-    )
-    if not participates:
-        return False
-    if surface in ("miniPlayer", "playerTab"):
-        return not presented
-    return True
+    generator = read("scripts/generate_xcodeproj.py")
+    swift_files = list((ROOT / "LuluMusic").rglob("*.swift"))
+    for path in swift_files:
+        src = path.read_text(encoding="utf-8")
+        check("matchedGeometryEffect" not in src, f"no matchedGeometryEffect in {path.relative_to(ROOT)}")
+        check("nowPlayingCover" not in src, f"no nowPlayingCover id in {path.relative_to(ROOT)}")
+        check("nowPlayingPlay" not in src, f"no nowPlayingPlay id in {path.relative_to(ROOT)}")
+        check("NowPlayingMatchedGeometry" not in src, f"no NowPlayingMatchedGeometry in {path.relative_to(ROOT)}")
+        check("NowPlayingCoverMatch" not in src, f"no NowPlayingCoverMatch in {path.relative_to(ROOT)}")
+        check("NowPlayingPlayMatch" not in src, f"no NowPlayingPlayMatch in {path.relative_to(ROOT)}")
+        check("NowPlayingMatchSurface" not in src, f"no NowPlayingMatchSurface in {path.relative_to(ROOT)}")
+        check("concertNamespace" not in src, f"no concertNamespace in {path.relative_to(ROOT)}")
+    check(not exists("LuluMusic/LoveSongTests/NowPlayingMatchedGeometryTests.swift"), "geometry XCTest removed")
+    check("NowPlayingMatchedGeometryTests" not in generator, "geometry XCTest dropped from project generator")
+    check("playIsSource" not in chrome and "playMatchActive" not in chrome, "transport has no match source flags")
+    check("MiniPlayerBar" in content, "mini player still presented")
+    check("FullPlayerOverlay" in content, "full player overlay still presented")
+    check("struct MiniPlayerBar" in mini, "mini player bar intact")
+    check("struct PlayerView" in player, "full player view intact")
+    check("isFullPlayerPresented" in content, "present/dismiss flag still drives overlay")
+    check("@Namespace" not in content, "no shared-element namespace on root")
 
 
 def test_project_wires_tests() -> None:
     pbx = read("LuluMusic/LuluMusic.xcodeproj/project.pbxproj")
     check("LoveSongTests" in pbx, "test target")
-    check("NowPlayingMatchedGeometryTests" in pbx, "geometry XCTest in pbx")
+    check("NowPlayingMatchedGeometryTests" not in pbx, "geometry XCTest removed from pbx")
     check("DanmakuCore.swift" in pbx, "core in pbx")
     check("LoveSongTheme.swift" in pbx, "concert theme tokens in pbx")
     check("StageComponents.swift" in pbx, "shared stage chrome in pbx")
@@ -251,7 +220,7 @@ def main() -> None:
         test_wifi_policy,
         test_playback_clock_and_waveform,
         test_wifi_ui_and_plist,
-        test_matched_geometry_single_source,
+        test_no_now_playing_matched_geometry,
         test_project_wires_tests,
     ):
         fn()

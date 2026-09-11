@@ -6,7 +6,6 @@ struct ContentView: View {
     @Environment(LibraryService.self) private var library
     @Environment(\.scenePhase) private var scenePhase
     @State private var tab: AppTab = .library
-    @Namespace private var concertNS
 
     var body: some View {
         @Bindable var player = player
@@ -14,13 +13,11 @@ struct ContentView: View {
             tabRoot
             if player.isFullPlayerPresented {
                 FullPlayerOverlay()
-                    .transition(.identity)
+                    .transition(.opacity)
                     .zIndex(2)
             }
         }
-        .animation(.spring(response: 0.42, dampingFraction: 0.84), value: player.isFullPlayerPresented)
-        .environment(\.concertNamespace, concertNS)
-        .environment(\.selectedAppTab, tab)
+        .animation(.easeInOut(duration: 0.28), value: player.isFullPlayerPresented)
         .tint(LoveSongTheme.spotlight)
         .toolbarBackground(.ultraThinMaterial, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)

@@ -9,7 +9,6 @@ enum MiniPlayerChromeStyle {
 
 struct MiniPlayerBar: View {
     @Environment(PlayerEngine.self) private var player
-    @Environment(\.selectedAppTab) private var selectedTab
     var style: MiniPlayerChromeStyle = .fallbackDock
 
     var body: some View {
@@ -23,7 +22,6 @@ struct MiniPlayerBar: View {
                             cornerRadius: 10
                         )
                         .frame(width: LoveSongTheme.Space.miniCover, height: LoveSongTheme.Space.miniCover)
-                        .modifier(NowPlayingCoverMatch(isSource: coverIsSource, isActive: coverMatchActive))
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(current.title)
@@ -46,7 +44,6 @@ struct MiniPlayerBar: View {
                         diameter: PlayerChrome.miniPlayDiameter,
                         action: { player.togglePlayPause() }
                     )
-                    .modifier(NowPlayingPlayMatch(isSource: coverIsSource, isActive: coverMatchActive))
                 }
 
                 MiniProgressHint(current: player.currentTime, duration: player.duration)
@@ -69,24 +66,8 @@ struct MiniPlayerBar: View {
         }
     }
 
-    private var coverIsSource: Bool {
-        NowPlayingMatchedGeometry.isSource(
-            .miniPlayer,
-            selectedTab: selectedTab,
-            isFullPlayerPresented: player.isFullPlayerPresented
-        )
-    }
-
-    private var coverMatchActive: Bool {
-        NowPlayingMatchedGeometry.participates(
-            .miniPlayer,
-            selectedTab: selectedTab,
-            isFullPlayerPresented: player.isFullPlayerPresented
-        )
-    }
-
     private func openFullPlayer() {
-        withAnimation(.spring(response: 0.42, dampingFraction: 0.84)) {
+        withAnimation(.easeInOut(duration: 0.28)) {
             player.isFullPlayerPresented = true
         }
     }

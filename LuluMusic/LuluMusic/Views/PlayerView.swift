@@ -3,7 +3,6 @@ import SwiftUI
 struct PlayerView: View {
     @Environment(PlayerEngine.self) private var player
     @Environment(DanmakuService.self) private var danmakuService
-    @Environment(\.selectedAppTab) private var selectedTab
     var showsDismiss = false
 
     @State private var runtime = DanmakuRuntime(store: InMemoryDanmakuStore())
@@ -60,9 +59,7 @@ struct PlayerView: View {
                         onMode: { player.cyclePlaybackMode() },
                         onPrevious: { player.playPrevious() },
                         onPlayPause: { player.togglePlayPause() },
-                        onNext: { player.playNext() },
-                        playIsSource: coverIsSource,
-                        playMatchActive: coverMatchActive
+                        onNext: { player.playNext() }
                     )
                     .padding(.horizontal, LoveSongTheme.Space.screen)
                     .padding(.top, 12)
@@ -127,31 +124,11 @@ struct PlayerView: View {
         showsDismiss ? (chromeReady ? 1 : 0) : 1
     }
 
-    private var matchSurface: NowPlayingMatchSurface {
-        showsDismiss ? .fullPlayer : .playerTab
-    }
-
-    private var coverIsSource: Bool {
-        NowPlayingMatchedGeometry.isSource(
-            matchSurface,
-            selectedTab: selectedTab,
-            isFullPlayerPresented: player.isFullPlayerPresented
-        )
-    }
-
-    private var coverMatchActive: Bool {
-        NowPlayingMatchedGeometry.participates(
-            matchSurface,
-            selectedTab: selectedTab,
-            isFullPlayerPresented: player.isFullPlayerPresented
-        )
-    }
-
     private var header: some View {
         HStack(spacing: 12) {
             if showsDismiss {
                 GlassCircleButton(systemName: "chevron.down") {
-                    withAnimation(.spring(response: 0.42, dampingFraction: 0.84)) {
+                    withAnimation(.easeInOut(duration: 0.28)) {
                         player.isFullPlayerPresented = false
                     }
                 }
@@ -182,7 +159,6 @@ struct PlayerView: View {
             cornerRadius: PlayerChrome.coverRadius
         )
         .frame(width: side, height: side)
-        .modifier(NowPlayingCoverMatch(isSource: coverIsSource, isActive: coverMatchActive))
         .overlay {
             if player.danmakuEnabled {
                 DanmakuOverlay(items: runtime.flying, size: CGSize(width: side, height: side)) { item in

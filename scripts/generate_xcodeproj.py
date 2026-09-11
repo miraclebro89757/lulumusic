@@ -65,7 +65,6 @@ TEST_FILES = [
     "WebImportPolicyTests.swift",
     "PlaybackClockTests.swift",
     "WaveformPeaksTests.swift",
-    "NowPlayingMatchedGeometryTests.swift",
 ]
 
 ASSETS = "Assets.xcassets"
