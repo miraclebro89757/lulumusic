@@ -37,6 +37,7 @@ FILES = [
     ("Core", "TrackDuration.swift", True),
     ("Core", "ScrubSeek.swift", True),
     ("Core", "WaveformPeaks.swift", True),
+    ("Core", "AudiblePlayback.swift", True),
     ("Models", "ImportSource.swift", True),
     ("Models", "PlaybackItem.swift", True),
     ("Models", "Track.swift", True),
@@ -82,6 +83,7 @@ TEST_FILES = [
     "FavoriteStoreTests.swift",
     "PixelChromeTests.swift",
     "PlayerStageLayoutTests.swift",
+    "AudiblePlaybackTests.swift",
 ]
 
 ASSETS = "Assets.xcassets"

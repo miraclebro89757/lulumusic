@@ -46,6 +46,9 @@ final class PlayerEngine {
     private var pendingAutoplay = false
     private var statusObserver: NSKeyValueObservation?
     private var durationObserver: NSKeyValueObservation?
+    private var timeControlObserver: NSKeyValueObservation?
+    private var pendingPlay = false
+    private(set) var lastPlayIntent: AudiblePlayIntent?
 
     init() {
         AudioSessionController.activatePlayback()
@@ -100,19 +103,45 @@ final class PlayerEngine {
 
     func play() {
         _ = AudioSessionController.activatePlayback()
-        guard current != nil else { return }
-        if player?.currentItem == nil {
+        guard let item = current else { return }
+        let fileExists = FileManager.default.fileExists(atPath: item.fileURL.path)
+        if player?.currentItem == nil || player?.currentItem?.status == .failed {
+            lastPlayIntent = AudiblePlayback.playIntent(
+                hasCurrentTrack: true,
+                fileExists: fileExists,
+                itemReadiness: .unknown
+            )
+            guard lastPlayIntent != nil else {
+                pendingPlay = false
+                pendingAutoplay = false
+                isPlaying = false
+                return
+            }
+            pendingPlay = true
+            pendingAutoplay = true
             loadCurrent(autoplay: true)
             return
         }
-        if let item = player?.currentItem, item.status == .failed {
-            loadCurrent(autoplay: true)
+        let readiness = PlayerItemReadiness(statusRawValue: player?.currentItem?.status.rawValue ?? 0)
+        lastPlayIntent = AudiblePlayback.playIntent(
+            hasCurrentTrack: true,
+            fileExists: fileExists,
+            itemReadiness: readiness
+        )
+        guard lastPlayIntent != nil else {
+            pendingPlay = false
+            pendingAutoplay = false
+            isPlaying = false
             return
         }
-        beginPlayback()
+        pendingPlay = true
+        pendingAutoplay = true
+        issueAudiblePlay()
     }
 
     func pause() {
+        pendingPlay = false
+        pendingAutoplay = false
         player?.pause()
         isPlaying = false
         publishNowPlaying()
@@ -287,45 +316,26 @@ final class PlayerEngine {
         unshuffledQueue = []
         currentIndex = 0
         isPlaying = false
+        pendingPlay = false
+        pendingAutoplay = false
+        lastPlayIntent = nil
         currentTime = 0
         duration = 0
         isSeeking = false
         statusObserver?.invalidate()
         durationObserver?.invalidate()
+        timeControlObserver?.invalidate()
         statusObserver = nil
         durationObserver = nil
+        timeControlObserver = nil
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
 
     private func beginPlayback() {
-        _ = AudioSessionController.activatePlayback()
-        guard let player else {
-            pendingAutoplay = true
-            loadCurrent(autoplay: true)
-            return
-        }
-        if let item = player.currentItem {
-            switch item.status {
-            case .unknown:
-                pendingAutoplay = true
-                isPlaying = true
-                publishNowPlaying()
-                return
-            case .failed:
-                pendingAutoplay = true
-                loadCurrent(autoplay: true)
-                return
-            case .readyToPlay:
-                break
-            @unknown default:
-                break
-            }
-        }
-        pendingAutoplay = false
-        player.play()
-        isPlaying = true
-        publishNowPlaying()
+        pendingPlay = true
+        pendingAutoplay = true
+        issueAudiblePlay()
     }
 
     private func loadCurrent(autoplay: Bool, resume: Bool = false) {
@@ -336,6 +346,7 @@ final class PlayerEngine {
         guard FileManager.default.fileExists(atPath: item.fileURL.path) else {
             isPlaying = false
             pendingAutoplay = false
+            pendingPlay = false
             publishNowPlaying()
             return
         }
@@ -356,14 +367,16 @@ final class PlayerEngine {
         durationObserver = nil
         isSeeking = false
 
-        let asset = TrackDuration.preciseAsset(url: item.fileURL)
-        let playerItem = AVPlayerItem(asset: asset)
+        pendingPlay = autoplay
+        let playerItem = AVPlayerItem(url: item.fileURL)
         if player == nil {
             player = AVPlayer(playerItem: playerItem)
             player?.actionAtItemEnd = .pause
+            bindTimeControlObserver()
         } else {
             player?.replaceCurrentItem(with: playerItem)
         }
+        configureAudibleOutput()
 
         duration = TrackDuration.playbackSeconds(fromRaw: item.duration)
         currentTime = 0
@@ -392,15 +405,72 @@ final class PlayerEngine {
 
         if autoplay {
             pendingAutoplay = true
-            isPlaying = true
+            pendingPlay = true
             if playerItem.status == .readyToPlay {
-                beginPlayback()
+                issueAudiblePlay()
             }
-            // else status observer will call beginPlayback when ready
+            // else status observer will call issueAudiblePlay when readyToPlay
         } else {
             pendingAutoplay = false
+            pendingPlay = false
+            isPlaying = false
         }
         persistResume()
+        publishNowPlaying()
+    }
+
+    private func issueAudiblePlay() {
+        _ = AudioSessionController.activatePlayback()
+        configureAudibleOutput()
+        guard let player else { return }
+        if player.timeControlStatus == .playing, player.rate > 0 { return }
+        let fileExists = current.map { FileManager.default.fileExists(atPath: $0.fileURL.path) } ?? false
+        let readiness = PlayerItemReadiness(statusRawValue: player.currentItem?.status.rawValue ?? 0)
+        let intent = AudiblePlayback.playIntent(
+            hasCurrentTrack: current != nil,
+            fileExists: fileExists,
+            itemReadiness: readiness
+        )
+        lastPlayIntent = intent
+        guard let intent, intent.callAVPlayerPlay else {
+            pendingPlay = false
+            pendingAutoplay = false
+            syncPlayingFromPlayer()
+            return
+        }
+        if intent.playImmediately {
+            pendingAutoplay = false
+            player.playImmediately(atRate: intent.rate)
+        } else {
+            pendingAutoplay = true
+            player.play()
+        }
+        syncPlayingFromPlayer()
+        publishNowPlaying()
+    }
+
+    private func configureAudibleOutput() {
+        guard let player else { return }
+        player.isMuted = false
+        player.volume = 1
+        player.automaticallyWaitsToMinimizeStalling = false
+    }
+
+    private func bindTimeControlObserver() {
+        timeControlObserver?.invalidate()
+        timeControlObserver = player?.observe(\.timeControlStatus, options: [.initial, .new]) { [weak self] _, _ in
+            Task { @MainActor [weak self] in
+                self?.syncPlayingFromPlayer()
+            }
+        }
+    }
+
+    private func syncPlayingFromPlayer() {
+        let kind = TimeControlKind(statusRawValue: player?.timeControlStatus.rawValue ?? 0)
+        isPlaying = AudiblePlayback.uiIsPlaying(optimisticIsPlaying: pendingPlay, timeControl: kind)
+        if kind == .playing {
+            pendingPlay = true
+        }
         publishNowPlaying()
     }
 
@@ -410,19 +480,25 @@ final class PlayerEngine {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.applyItemDuration(item)
-                if item.status == .readyToPlay, self.pendingAutoplay {
-                    self.beginPlayback()
-                } else if item.status == .failed {
-                    self.isPlaying = false
-                    self.pendingAutoplay = false
-                    self.publishNowPlaying()
-                }
+                self.handleItemStatus(item)
             }
         }
         durationObserver = playerItem.observe(\.duration, options: [.new]) { [weak self] item, _ in
             Task { @MainActor [weak self] in
                 self?.applyItemDuration(item)
             }
+        }
+    }
+
+    private func handleItemStatus(_ item: AVPlayerItem) {
+        let readiness = PlayerItemReadiness(statusRawValue: item.status.rawValue)
+        if item.status == .readyToPlay, pendingPlay || pendingAutoplay {
+            issueAudiblePlay()
+        } else if readiness == .failed {
+            pendingPlay = false
+            pendingAutoplay = false
+            isPlaying = false
+            publishNowPlaying()
         }
     }
 

@@ -3,6 +3,7 @@ import Foundation
 import os
 
 enum AudioSessionController {
+    static let requiredCategory = AudioSessionCategoryKind.playback
     private static let log = Logger(subsystem: "com.lulumusic.app", category: "AudioSession")
 
     @discardableResult
@@ -21,6 +22,8 @@ enum AudioSessionController {
                 return true
             } catch {
                 log.error("activatePlayback retry failed: \(error.localizedDescription, privacy: .public)")
+                try? session.setCategory(.playback)
+                try? session.setActive(true)
                 return false
             }
         }

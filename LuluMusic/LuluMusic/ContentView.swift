@@ -19,6 +19,9 @@ struct ContentView: View {
                 }
             }
             .onChange(of: scenePhase) { _, phase in
+                if phase == .active {
+                    AudioSessionController.activatePlayback()
+                }
                 if phase != .active {
                     player.persistResume()
                     if let id = player.current?.id {

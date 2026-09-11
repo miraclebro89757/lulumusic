@@ -39,11 +39,11 @@ struct PlayerView: View {
 
                 PlayerTransport(
                     isPlaying: player.isPlaying,
-                    enabled: player.current != nil,
+                    enabled: player.current != nil || !tracks.isEmpty,
                     liked: currentLiked,
                     onLike: toggleLike,
                     onPrevious: { player.playPrevious() },
-                    onPlayPause: { player.togglePlayPause() },
+                    onPlayPause: handlePlayPause,
                     onNext: { player.playNext() },
                     onMore: { showMore = true }
                 )
@@ -249,6 +249,20 @@ struct PlayerView: View {
         }
         .frame(width: stack.width, height: stack.height, alignment: .topLeading)
         .frame(maxWidth: .infinity)
+    }
+
+    private func handlePlayPause() {
+        switch AudiblePlayback.transportAction(
+            hasCurrentTrack: player.current != nil,
+            libraryIsEmpty: tracks.isEmpty
+        ) {
+        case .togglePlayPause:
+            player.togglePlayPause()
+        case .playLibraryFromStart:
+            player.play(tracks: tracks, startAt: 0)
+        case .none:
+            break
+        }
     }
 
     private func toggleLike() {

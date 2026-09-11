@@ -132,7 +132,8 @@ def test_playback_clock_and_waveform() -> None:
     check("isSeeking" in player, "seek suppresses playhead observer")
     check("seekGeneration" in player, "overlapping scrub seeks")
     check("player.seek(to: cm" in player or "player?.seek(to: cm" in player, "AVPlayer.seek")
-    check("AVURLAssetPreferPreciseDurationAndTimingKey" in player or "TrackDuration.preciseAsset" in player, "precise item duration")
+    check("TrackDuration.playbackSeconds" in player, "engine normalizes item duration")
+    check("AVPlayerItem(url:" in player, "playback item uses sandbox file URL")
     chrome = read("LuluMusic/LuluMusic/Views/PlayerChrome.swift")
     check("Hasher()" not in chrome, "no hashed fake waveform")
     check("peaks" in chrome, "scrubber takes real peaks")
@@ -263,6 +264,8 @@ def test_project_wires_tests() -> None:
     check("DanmakuPhrasePack.swift" in pbx, "DanmakuPhrasePack in pbx")
     check("FavoriteStoreTests.swift" in pbx, "favorite XCTest in pbx")
     check("PixelChromeTests.swift" in pbx, "pixel chrome XCTest in pbx")
+    check("AudiblePlayback.swift" in pbx, "AudiblePlayback in pbx")
+    check("AudiblePlaybackTests.swift" in pbx, "AudiblePlayback XCTest in pbx")
     check("LiveDanmakuWindowTests.swift" in pbx, "Live window tests in pbx")
     check("LibraryView.swift" not in pbx, "LibraryView renamed to PlaylistView")
     check("DEVELOPMENT_TEAM = 5595Y4TR6U;" in pbx, "keep DEVELOPMENT_TEAM 5595Y4TR6U")
@@ -602,6 +605,84 @@ def test_player_header_safe_area() -> None:
     check(legacy_clearance < 12, "legacy math would clip the header gap")
 
 
+def audible_play_intent(has_current: bool, file_exists: bool, readiness: str) -> dict | None:
+    if not has_current or not file_exists or readiness == "failed":
+        return None
+    ready = readiness == "readyToPlay"
+    return {
+        "activatePlaybackSession": True,
+        "sessionCategory": "playback",
+        "setSessionActive": True,
+        "unmute": True,
+        "volume": 1.0,
+        "rate": 1.0,
+        "callAVPlayerPlay": True,
+        "playImmediately": ready,
+        "retryWhenReadyToPlay": not ready,
+        "waitToMinimizeStalling": False,
+    }
+
+
+def test_audible_playback() -> None:
+    check(exists("LuluMusic/LuluMusic/Core/AudiblePlayback.swift"), "AudiblePlayback.swift exists")
+    check(exists("LuluMusic/LoveSongTests/AudiblePlaybackTests.swift"), "AudiblePlayback XCTest exists")
+    src = read("LuluMusic/LuluMusic/Core/AudiblePlayback.swift") if exists("LuluMusic/LuluMusic/Core/AudiblePlayback.swift") else ""
+    tests = read("LuluMusic/LoveSongTests/AudiblePlaybackTests.swift")
+    engine = read("LuluMusic/LuluMusic/Services/PlayerEngine.swift")
+    session = read("LuluMusic/LuluMusic/Services/AudioSessionController.swift")
+    player_view = read("LuluMusic/LuluMusic/Views/PlayerView.swift")
+    chrome = read("LuluMusic/LuluMusic/Views/PlayerChrome.swift")
+
+    check("enum AudiblePlayback" in src, "AudiblePlayback type")
+    check("struct AudiblePlayIntent" in src, "play intent hook")
+    check("func playIntent(" in src, "playIntent factory")
+    check("retryWhenReadyToPlay" in src, "retry when item not ready")
+    check("playImmediately" in src, "playImmediately flag")
+    check("sessionCategory" in src and ".playback" in src, "intent requires .playback category")
+    check("func transportAction(" in src, "transport action hook")
+    check("playLibraryFromStart" in src, "Play with no current starts library")
+    check("func uiIsPlaying(" in src, "UI playing follows timeControlStatus")
+
+    check("testPlayIntentActivatesPlaybackSessionAndCallsAVPlayerPlay" in tests, "play intent XCTest")
+    check("testPlayIntentRetriesWhenItemNotYetReadyToPlay" in tests, "retry XCTest")
+    check("testPlayIntentNilWhenFileMissingOrItemFailed" in tests, "missing file XCTest")
+    check("testUIPlayingFollowsTimeControlNotOptimisticFlag" in tests, "timeControl UI XCTest")
+    check("testTransportPlayStartsLibraryWhenNoCurrentTrack" in tests, "transport library XCTest")
+
+    check("AudiblePlayback.playIntent" in engine, "engine uses AudiblePlayback.playIntent")
+    check("playImmediately(atRate:" in engine, "engine calls playImmediately")
+    check("isMuted = false" in engine, "engine unmutes AVPlayer")
+    check("volume = 1" in engine, "engine volume 1")
+    check("automaticallyWaitsToMinimizeStalling = false" in engine, "local files do not stall-wait")
+    check("timeControlStatus" in engine, "engine observes timeControlStatus")
+    check(".readyToPlay" in engine, "engine waits/retries readyToPlay")
+    check("AVPlayerItem(url:" in engine, "playback item uses file URL not precise-only asset")
+    check("pendingPlay" in engine, "pending play until item ready")
+    check("lastPlayIntent" in engine, "play intent recorded")
+
+    check("setCategory(.playback" in session, "session category .playback")
+    check("setActive(true)" in session, "session setActive true")
+
+    check("togglePlayPause()" in player_view, "PlayerView still calls togglePlayPause")
+    check("AudiblePlayback.transportAction" in player_view, "PlayerView uses transport action hook")
+    check("play(tracks:" in player_view, "Play can start imported library")
+    check("AudiblePlaybackTests.swift" in read("scripts/generate_xcodeproj.py"), "audible tests in generator")
+    check("AudiblePlayback.swift" in read("scripts/generate_xcodeproj.py"), "audible source in generator")
+
+    ready = audible_play_intent(True, True, "readyToPlay")
+    check(ready is not None, "python twin ready intent")
+    assert ready is not None
+    check(ready["activatePlaybackSession"] and ready["setSessionActive"], "python twin activates session")
+    check(ready["sessionCategory"] == "playback", "python twin category playback")
+    check(ready["callAVPlayerPlay"] and ready["playImmediately"], "python twin plays immediately when ready")
+    check(ready["unmute"] and ready["volume"] == 1.0 and ready["rate"] == 1.0, "python twin audible output")
+    unknown = audible_play_intent(True, True, "unknown")
+    check(unknown is not None and unknown["retryWhenReadyToPlay"] and not unknown["playImmediately"], "python twin retries if not ready")
+    check(audible_play_intent(True, False, "readyToPlay") is None, "python twin missing file")
+    check(audible_play_intent(True, True, "failed") is None, "python twin failed item")
+    check(audible_play_intent(False, True, "readyToPlay") is None, "python twin no current")
+
+
 def test_duration_and_scrub_algorithms() -> None:
     import subprocess
     import sys
@@ -635,6 +716,7 @@ def main() -> None:
         test_pixel_1to1,
         test_amend_must_ids,
         test_player_header_safe_area,
+        test_audible_playback,
         test_project_wires_tests,
     ):
         fn()
