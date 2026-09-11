@@ -28,6 +28,7 @@ FILES = [
     ("Core", "LiveDanmakuWindow.swift", True),
     ("Core", "FavoriteStore.swift", True),
     ("Core", "ConcertDateFormat.swift", True),
+    ("Core", "PlayerStageLayout.swift", True),
     ("Core", "LocalDanmakuIdentity.swift", True),
     ("Core", "DanmakuPhrasePack.swift", True),
     ("Core", "WebImportPolicy.swift", True),
@@ -80,6 +81,7 @@ TEST_FILES = [
     "LiveDanmakuWindowTests.swift",
     "FavoriteStoreTests.swift",
     "PixelChromeTests.swift",
+    "PlayerStageLayoutTests.swift",
 ]
 
 ASSETS = "Assets.xcassets"

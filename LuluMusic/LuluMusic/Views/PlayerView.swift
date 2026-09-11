@@ -20,62 +20,65 @@ struct PlayerView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let artworkSide = min(LoveSongTheme.Space.coverMax, proxy.size.width * 0.76)
+            let artworkSide = PlayerStageLayout.coverSide(
+                containerWidth: proxy.size.width,
+                maxSide: LoveSongTheme.Space.coverMax
+            )
+            VStack(spacing: 0) {
+                stackedCover(side: artworkSide)
+                    .padding(.horizontal, 16)
+
+                Spacer(minLength: 18)
+
+                ProgressSeekBar(
+                    current: player.currentTime,
+                    duration: player.duration,
+                    enabled: player.current != nil
+                ) { player.seek(to: $0) }
+                .padding(.horizontal, 26)
+
+                PlayerTransport(
+                    isPlaying: player.isPlaying,
+                    enabled: player.current != nil,
+                    liked: currentLiked,
+                    onLike: toggleLike,
+                    onPrevious: { player.playPrevious() },
+                    onPlayPause: { player.togglePlayPause() },
+                    onNext: { player.playNext() },
+                    onMore: { showMore = true }
+                )
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+
+                VenueGlassStrip(
+                    text: player.current?.venueTag ?? "",
+                    dateText: concertDateFull,
+                    onOpenLive: { navigation.tab = .live },
+                    onEdit: { beginVenueEdit() }
+                )
+                .padding(.horizontal, 18)
+                .padding(.top, 18)
+
+                Spacer(minLength: 8)
+            }
+            .padding(.bottom, 8)
+            .frame(width: proxy.size.width, height: proxy.size.height)
+        }
+        .background {
             ZStack {
-                LoveSongTheme.stageBackground.ignoresSafeArea()
+                LoveSongTheme.stageBackground
                 RadialGradient(
                     colors: [LoveSongTheme.accent.opacity(0.16), Color.clear],
                     center: .top,
                     startRadius: 20,
                     endRadius: 420
                 )
-                .ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    header
-                        .padding(.horizontal, 20)
-                        .padding(.top, 4)
-
-                    Spacer(minLength: 14)
-
-                    stackedCover(side: artworkSide)
-                        .padding(.horizontal, 16)
-
-                    Spacer(minLength: 18)
-
-                    ProgressSeekBar(
-                        current: player.currentTime,
-                        duration: player.duration,
-                        enabled: player.current != nil
-                    ) { player.seek(to: $0) }
-                    .padding(.horizontal, 26)
-
-                    PlayerTransport(
-                        isPlaying: player.isPlaying,
-                        enabled: player.current != nil,
-                        liked: currentLiked,
-                        onLike: toggleLike,
-                        onPrevious: { player.playPrevious() },
-                        onPlayPause: { player.togglePlayPause() },
-                        onNext: { player.playNext() },
-                        onMore: { showMore = true }
-                    )
-                    .padding(.horizontal, 16)
-                    .padding(.top, 16)
-
-                    VenueGlassStrip(
-                        text: player.current?.venueTag ?? "",
-                        dateText: concertDateFull,
-                        onOpenLive: { navigation.tab = .live },
-                        onEdit: { beginVenueEdit() }
-                    )
-                    .padding(.horizontal, 18)
-                    .padding(.top, 18)
-
-                    Spacer(minLength: 8)
-                }
-                .padding(.bottom, 8)
             }
+            .ignoresSafeArea()
+        }
+        .safeAreaInset(edge: .top, spacing: PlayerStageLayout.headerToCoverSpacing) {
+            header
+                .padding(.horizontal, PlayerStageLayout.headerHorizontalPadding)
         }
         .foregroundStyle(LoveSongTheme.textPrimary)
         .toolbar(.hidden, for: .navigationBar)
@@ -169,23 +172,27 @@ struct PlayerView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("更多")
         }
-        .frame(minHeight: 44)
+        .frame(minHeight: PlayerStageLayout.headerMinHeight)
     }
 
     private func stackedCover(side: CGFloat) -> some View {
-        ZStack {
+        let stack = PlayerStageLayout.coverStackSize(side: side)
+        return ZStack(alignment: .topLeading) {
             ArtworkView(
                 url: player.current?.artworkURL,
                 seed: (player.current?.title ?? "rear") + "rear",
                 cornerRadius: PlayerChrome.coverRadius,
                 placeholderAsset: ReferenceArt.liveStage
             )
-            .frame(width: side + 4, height: side + 4)
+            .frame(
+                width: side + PlayerStageLayout.rearOversize,
+                height: side + PlayerStageLayout.rearOversize
+            )
             .overlay {
                 RoundedRectangle(cornerRadius: PlayerChrome.coverRadius, style: .continuous)
                     .fill(Color(hex: 0x2E1065).opacity(0.62))
             }
-            .offset(x: 16, y: -10)
+            .offset(x: PlayerStageLayout.rearPeekX)
             .allowsHitTesting(false)
 
             ZStack(alignment: .bottomLeading) {
@@ -235,11 +242,12 @@ struct PlayerView: View {
                 LiveStatusPill()
                     .padding(12)
             }
+            .padding(.top, PlayerStageLayout.rearPeekY)
             .shadow(color: LoveSongTheme.coverShadow, radius: 24, y: 12)
             .contentShape(RoundedRectangle(cornerRadius: PlayerChrome.coverRadius, style: .continuous))
             .onTapGesture { navigation.tab = .live }
         }
-        .frame(width: side + 16, height: side + 10)
+        .frame(width: stack.width, height: stack.height, alignment: .topLeading)
         .frame(maxWidth: .infinity)
     }
 

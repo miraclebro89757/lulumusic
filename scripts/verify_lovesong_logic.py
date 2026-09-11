@@ -251,6 +251,8 @@ def test_project_wires_tests() -> None:
     check("QRCodeImage.swift" not in pbx, "QR removed from pbx")
     check("RepeatMode.swift" not in pbx, "repeat-all type removed")
     check("LiveDanmakuWindow.swift" in pbx, "Live visible-window helper in pbx")
+    check("PlayerStageLayout.swift" in pbx, "PlayerStageLayout in pbx")
+    check("PlayerStageLayoutTests.swift" in pbx, "PlayerStageLayout tests in pbx")
     check("LiveView.swift" in pbx, "LiveView in pbx")
     check("PlaylistView.swift" in pbx, "PlaylistView in pbx")
     check("DanmakuModal.swift" in pbx, "DanmakuModal in pbx")
@@ -416,6 +418,7 @@ def test_pixel_1to1() -> None:
     check("LoveSongTabBar" in content, "custom tab bar wired")
 
     check("Live Memory" in player or "liveMemory" in player, "A05 Live Memory header")
+    check("safeAreaInset(edge: .top" in player, "A05 header in top safeAreaInset")
     check("ellipsis" in player, "A05 trailing ⋮")
     check("LiveStatusPill" in player and "现场实况" in l10n, "A04 现场实况")
     check("offset(x:" in player, "A03 stacked cover peek")
@@ -531,6 +534,74 @@ def test_amend_must_ids() -> None:
     check("FloatingHeart" not in live, "A15/A16 no social hearts")
 
 
+def player_header_cover_clearance(spacing: float, rear_min_y: float) -> float:
+    overflow = max(0.0, -rear_min_y)
+    return spacing - overflow
+
+
+def test_player_header_safe_area() -> None:
+    """Live Memory header sits in the top safe area; CoverStack must not overlap it."""
+    player = read("LuluMusic/LuluMusic/Views/PlayerView.swift")
+    check(exists("LuluMusic/LuluMusic/Core/PlayerStageLayout.swift"), "PlayerStageLayout.swift exists")
+    check(exists("LuluMusic/LoveSongTests/PlayerStageLayoutTests.swift"), "PlayerStageLayout XCTest exists")
+    layout = read("LuluMusic/LuluMusic/Core/PlayerStageLayout.swift") if exists("LuluMusic/LuluMusic/Core/PlayerStageLayout.swift") else ""
+    tests = read("LuluMusic/LoveSongTests/PlayerStageLayoutTests.swift")
+    check("enum PlayerStageLayout" in layout, "PlayerStageLayout type")
+    check("headerToCoverSpacing" in layout, "header-to-cover spacing token")
+    check("rearPeekY" in layout and "rearPeekX" in layout, "cover peek tokens")
+    check("safeAreaInset(edge: .top" in player, "header pinned with top safeAreaInset")
+    check("PlayerStageLayout.headerToCoverSpacing" in player, "PlayerView uses layout gap")
+    check("PlayerStageLayout.rearPeekY" in player, "cover stack uses contained peek")
+    check("PlayerStageLayout.headerMinHeight" in player, "header min height from layout")
+    check("zIndex(" not in player, "no zIndex overlap hack on Player")
+    check("offset(x: 16, y: -10)" not in player, "rear cover does not offset upward out of stack")
+    check("GlassDanmakuComposer" not in player, "no Player danmaku input bar")
+    check("LiveStatusPill" in player, "keep 现场实况 pill")
+    check("toggleLike" in player or "LikeHeartButton" in player, "keep heart/isLiked")
+    check("VenueGlassStrip" in player, "keep venue strip")
+    check("PlayerTransport" in player, "keep transport")
+    check("hqBadge" in read("LuluMusic/LuluMusic/Views/StageComponents.swift"), "keep HQ")
+    check("testCoverStackContainsRearPeekSoItCannotOverlapHeader" in tests, "cover-in-stack XCTest")
+    check("testHeaderToCoverSpacingMatchesPixelSpec" in tests, "header spacing XCTest")
+    check("PlayerStageLayout.swift" in read("scripts/generate_xcodeproj.py"), "layout helper in generator")
+    check("PlayerStageLayoutTests.swift" in read("scripts/generate_xcodeproj.py"), "layout tests in generator")
+    pbx = read("LuluMusic/LuluMusic.xcodeproj/project.pbxproj")
+    check("PlayerStageLayout.swift" in pbx, "layout helper in pbx")
+    check("PlayerStageLayoutTests.swift" in pbx, "layout tests in pbx")
+    check("DEVELOPMENT_TEAM = 5595Y4TR6U;" in pbx, "DEVELOPMENT_TEAM unchanged")
+
+    import re
+
+    def swift_cgfloat(src: str, name: str) -> float:
+        match = re.search(rf"static let {name}: CGFloat = ([0-9.]+)", src)
+        check(match is not None, f"parse {name}")
+        return float(match.group(1)) if match else 0.0
+
+    spacing = swift_cgfloat(layout, "headerToCoverSpacing")
+    peek_y = swift_cgfloat(layout, "rearPeekY")
+    peek_x = swift_cgfloat(layout, "rearPeekX")
+    oversize = swift_cgfloat(layout, "rearOversize")
+    check(12 <= spacing <= 16, "spacing in spec 12–16pt")
+    check(10 <= peek_y <= 16, "rear peek Y in spec 10–16pt")
+    check(10 <= peek_x <= 16, "rear peek X in spec 10–16pt")
+
+    side = 304.0
+    stack_h = side + peek_y
+    rear_h = side + oversize
+    rear_min_y = 0.0
+    main_min_y = peek_y
+    check(rear_min_y >= 0, "rear stays inside stack top")
+    check(main_min_y + side <= stack_h, "main card fits stack height")
+    check(rear_min_y + rear_h <= stack_h, "rear card fits stack height")
+    check(player_header_cover_clearance(spacing, rear_min_y) >= 12, "contained peek keeps spec gap")
+    check(player_header_cover_clearance(spacing, rear_min_y) == spacing, "zero overflow uses full spacing")
+
+    # Legacy centered rear offset (y: -10) overflowed the stack; layout spacing
+    # must keep rear.minY >= 0 so the cover cannot paint over Live Memory.
+    legacy_clearance = player_header_cover_clearance(14, (10 - 4) / 2 + (-10))
+    check(legacy_clearance < 12, "legacy math would clip the header gap")
+
+
 def test_duration_and_scrub_algorithms() -> None:
     import subprocess
     import sys
@@ -563,6 +634,7 @@ def main() -> None:
         test_three_tab_ia,
         test_pixel_1to1,
         test_amend_must_ids,
+        test_player_header_safe_area,
         test_project_wires_tests,
     ):
         fn()
