@@ -57,6 +57,7 @@
 		7FFC0000000000000000038A /* WebImportPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000326 /* WebImportPolicyTests.swift */; };
 		7FFC0000000000000000038B /* PlaybackClockTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000327 /* PlaybackClockTests.swift */; };
 		7FFC0000000000000000038C /* WaveformPeaksTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000328 /* WaveformPeaksTests.swift */; };
+		7FFC0000000000000000038D /* NowPlayingMatchedGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC00000000000000000329 /* NowPlayingMatchedGeometryTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -125,6 +126,7 @@
 		7FFC00000000000000000326 /* WebImportPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebImportPolicyTests.swift; sourceTree = "<group>"; };
 		7FFC00000000000000000327 /* PlaybackClockTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackClockTests.swift; sourceTree = "<group>"; };
 		7FFC00000000000000000328 /* WaveformPeaksTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformPeaksTests.swift; sourceTree = "<group>"; };
+		7FFC00000000000000000329 /* NowPlayingMatchedGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingMatchedGeometryTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -196,6 +198,7 @@
 				7FFC00000000000000000326 /* WebImportPolicyTests.swift */,
 				7FFC00000000000000000327 /* PlaybackClockTests.swift */,
 				7FFC00000000000000000328 /* WaveformPeaksTests.swift */,
+				7FFC00000000000000000329 /* NowPlayingMatchedGeometryTests.swift */,
 			);
 			path = LoveSongTests;
 			sourceTree = "<group>";
@@ -435,6 +438,7 @@
 				7FFC0000000000000000038A /* WebImportPolicyTests.swift in Sources */,
 				7FFC0000000000000000038B /* PlaybackClockTests.swift in Sources */,
 				7FFC0000000000000000038C /* WaveformPeaksTests.swift in Sources */,
+				7FFC0000000000000000038D /* NowPlayingMatchedGeometryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

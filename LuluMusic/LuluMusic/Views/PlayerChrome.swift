@@ -16,6 +16,47 @@ enum AppTab: Hashable {
     case library, player
 }
 
+enum NowPlayingMatchSurface: CaseIterable {
+    case miniPlayer
+    case playerTab
+    case fullPlayer
+}
+
+enum NowPlayingMatchedGeometry {
+    /// Whether this surface should join the shared cover/play matchedGeometry group.
+    static func participates(
+        _ surface: NowPlayingMatchSurface,
+        selectedTab: AppTab,
+        isFullPlayerPresented: Bool
+    ) -> Bool {
+        switch surface {
+        case .miniPlayer:
+            return selectedTab == .library
+        case .playerTab:
+            return selectedTab == .player
+        case .fullPlayer:
+            return isFullPlayerPresented
+        }
+    }
+
+    /// At most one surface may be `isSource: true` for `nowPlayingCover` / `nowPlayingPlay`.
+    static func isSource(
+        _ surface: NowPlayingMatchSurface,
+        selectedTab: AppTab,
+        isFullPlayerPresented: Bool
+    ) -> Bool {
+        guard participates(surface, selectedTab: selectedTab, isFullPlayerPresented: isFullPlayerPresented) else {
+            return false
+        }
+        switch surface {
+        case .miniPlayer, .playerTab:
+            return !isFullPlayerPresented
+        case .fullPlayer:
+            return true
+        }
+    }
+}
+
 private struct ConcertNamespaceKey: EnvironmentKey {
     static let defaultValue: Namespace.ID? = nil
 }
@@ -38,11 +79,12 @@ extension EnvironmentValues {
 
 struct NowPlayingCoverMatch: ViewModifier {
     var isSource: Bool
+    var isActive: Bool = true
 
     @Environment(\.concertNamespace) private var concertNamespace
 
     func body(content: Content) -> some View {
-        if let concertNamespace {
+        if isActive, let concertNamespace {
             content.matchedGeometryEffect(
                 id: PlayerChrome.coverMatchID,
                 in: concertNamespace,
@@ -57,11 +99,12 @@ struct NowPlayingCoverMatch: ViewModifier {
 
 struct NowPlayingPlayMatch: ViewModifier {
     var isSource: Bool
+    var isActive: Bool = true
 
     @Environment(\.concertNamespace) private var concertNamespace
 
     func body(content: Content) -> some View {
-        if let concertNamespace {
+        if isActive, let concertNamespace {
             content.matchedGeometryEffect(
                 id: PlayerChrome.playMatchID,
                 in: concertNamespace,
@@ -170,6 +213,7 @@ struct PlayerTransport: View {
     var onPlayPause: () -> Void
     var onNext: () -> Void
     var playIsSource: Bool = false
+    var playMatchActive: Bool = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -192,7 +236,7 @@ struct PlayerTransport: View {
                 diameter: PlayerChrome.playDiameter,
                 action: onPlayPause
             )
-            .modifier(NowPlayingPlayMatch(isSource: playIsSource))
+            .modifier(NowPlayingPlayMatch(isSource: playIsSource, isActive: playMatchActive))
             .padding(.horizontal, 16)
 
             SkipControlButton(systemName: "forward.fill", action: onNext)

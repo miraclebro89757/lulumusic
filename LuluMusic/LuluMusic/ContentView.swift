@@ -60,8 +60,11 @@ struct ContentView: View {
                 .tabItem { Label(L10n.tabLibrary, systemImage: "music.note.list") }
                 .tag(AppTab.library)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    if tab == .library, !player.isFullPlayerPresented {
+                    if tab == .library {
                         MiniPlayerBar(style: .fallbackDock)
+                            .opacity(player.isFullPlayerPresented ? 0 : 1)
+                            .allowsHitTesting(!player.isFullPlayerPresented)
+                            .accessibilityHidden(player.isFullPlayerPresented)
                     }
                 }
 
@@ -85,8 +88,11 @@ struct ContentView: View {
         }
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory {
-            if tab == .library, player.current != nil, !player.isFullPlayerPresented {
+            if tab == .library, player.current != nil {
                 MiniPlayerBar(style: .systemAccessory)
+                    .opacity(player.isFullPlayerPresented ? 0 : 1)
+                    .allowsHitTesting(!player.isFullPlayerPresented)
+                    .accessibilityHidden(player.isFullPlayerPresented)
             }
         }
     }

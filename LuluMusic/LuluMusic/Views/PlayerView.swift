@@ -61,7 +61,8 @@ struct PlayerView: View {
                         onPrevious: { player.playPrevious() },
                         onPlayPause: { player.togglePlayPause() },
                         onNext: { player.playNext() },
-                        playIsSource: coverIsSource
+                        playIsSource: coverIsSource,
+                        playMatchActive: coverMatchActive
                     )
                     .padding(.horizontal, LoveSongTheme.Space.screen)
                     .padding(.top, 12)
@@ -126,9 +127,24 @@ struct PlayerView: View {
         showsDismiss ? (chromeReady ? 1 : 0) : 1
     }
 
+    private var matchSurface: NowPlayingMatchSurface {
+        showsDismiss ? .fullPlayer : .playerTab
+    }
+
     private var coverIsSource: Bool {
-        if showsDismiss { return player.isFullPlayerPresented }
-        return selectedTab == .player && !player.isFullPlayerPresented
+        NowPlayingMatchedGeometry.isSource(
+            matchSurface,
+            selectedTab: selectedTab,
+            isFullPlayerPresented: player.isFullPlayerPresented
+        )
+    }
+
+    private var coverMatchActive: Bool {
+        NowPlayingMatchedGeometry.participates(
+            matchSurface,
+            selectedTab: selectedTab,
+            isFullPlayerPresented: player.isFullPlayerPresented
+        )
     }
 
     private var header: some View {
@@ -166,7 +182,7 @@ struct PlayerView: View {
             cornerRadius: PlayerChrome.coverRadius
         )
         .frame(width: side, height: side)
-        .modifier(NowPlayingCoverMatch(isSource: coverIsSource))
+        .modifier(NowPlayingCoverMatch(isSource: coverIsSource, isActive: coverMatchActive))
         .overlay {
             if player.danmakuEnabled {
                 DanmakuOverlay(items: runtime.flying, size: CGSize(width: side, height: side)) { item in

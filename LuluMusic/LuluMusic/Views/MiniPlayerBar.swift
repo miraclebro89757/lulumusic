@@ -23,7 +23,7 @@ struct MiniPlayerBar: View {
                             cornerRadius: 10
                         )
                         .frame(width: LoveSongTheme.Space.miniCover, height: LoveSongTheme.Space.miniCover)
-                        .modifier(NowPlayingCoverMatch(isSource: coverIsSource))
+                        .modifier(NowPlayingCoverMatch(isSource: coverIsSource, isActive: coverMatchActive))
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(current.title)
@@ -46,7 +46,7 @@ struct MiniPlayerBar: View {
                         diameter: PlayerChrome.miniPlayDiameter,
                         action: { player.togglePlayPause() }
                     )
-                    .modifier(NowPlayingPlayMatch(isSource: coverIsSource))
+                    .modifier(NowPlayingPlayMatch(isSource: coverIsSource, isActive: coverMatchActive))
                 }
 
                 MiniProgressHint(current: player.currentTime, duration: player.duration)
@@ -70,7 +70,19 @@ struct MiniPlayerBar: View {
     }
 
     private var coverIsSource: Bool {
-        selectedTab == .library && !player.isFullPlayerPresented
+        NowPlayingMatchedGeometry.isSource(
+            .miniPlayer,
+            selectedTab: selectedTab,
+            isFullPlayerPresented: player.isFullPlayerPresented
+        )
+    }
+
+    private var coverMatchActive: Bool {
+        NowPlayingMatchedGeometry.participates(
+            .miniPlayer,
+            selectedTab: selectedTab,
+            isFullPlayerPresented: player.isFullPlayerPresented
+        )
     }
 
     private func openFullPlayer() {
