@@ -19,6 +19,15 @@ def playback_seconds_from_raw(raw: float) -> float:
     return raw
 
 
+def resolved_playback_seconds(raw: float, asset_seconds: float | None) -> float:
+    known = playback_seconds_from_raw(raw)
+    if known > 0:
+        return known
+    if asset_seconds is None:
+        return 0.0
+    return playback_seconds_from_raw(asset_seconds)
+
+
 def format_duration(time: float) -> str:
     if not math.isfinite(time) or time < 0:
         return "--:--"
@@ -67,6 +76,11 @@ def main() -> int:
     check(abs(scrub_time(0.5, 1, 180) - 90) < 1e-6, "fraction maps to seconds not ms", failures)
     check(scrub_command(25, 100, 200) == (50.0, True), "seek command uses player seconds", failures)
     check(scrub_command(25, 100, 0)[1] is False, "no seek when duration unknown", failures)
+
+    check(abs(resolved_playback_seconds(215, None) - 215) < 1e-6, "known raw skips asset", failures)
+    check(abs(resolved_playback_seconds(215_000, None) - 215) < 1e-6, "known ms raw skips asset", failures)
+    check(resolved_playback_seconds(0, None) == 0, "unknown raw + missing asset is 0", failures)
+    check(abs(resolved_playback_seconds(0, 269.2) - 269.2) < 1e-6, "unknown raw uses asset seconds", failures)
 
     if failures:
         print("FAILED")

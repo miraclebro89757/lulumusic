@@ -45,4 +45,22 @@ final class TrackDurationTests: XCTestCase {
         XCTAssertEqual(TimeFormat.duration(-1), L10n.durationUnknown)
         XCTAssertEqual(TimeFormat.duration(.infinity), L10n.durationUnknown)
     }
+
+    func testResolvedPlaybackSecondsKeepsKnownRawWithoutReadingFile() async {
+        let missing = URL(fileURLWithPath: "/tmp/lulumusic-missing-\(UUID().uuidString).m4a")
+        let seconds = await TrackDuration.resolvedPlaybackSeconds(raw: 215, fileURL: missing)
+        XCTAssertEqual(seconds, 215, accuracy: 0.0001)
+    }
+
+    func testResolvedPlaybackSecondsNormalizesMillisecondRaw() async {
+        let missing = URL(fileURLWithPath: "/tmp/lulumusic-missing-\(UUID().uuidString).m4a")
+        let seconds = await TrackDuration.resolvedPlaybackSeconds(raw: 215_000, fileURL: missing)
+        XCTAssertEqual(seconds, 215, accuracy: 0.0001)
+    }
+
+    func testResolvedPlaybackSecondsReturnsZeroWhenRawUnknownAndAssetMissing() async {
+        let missing = URL(fileURLWithPath: "/tmp/lulumusic-missing-\(UUID().uuidString).m4a")
+        let seconds = await TrackDuration.resolvedPlaybackSeconds(raw: 0, fileURL: missing)
+        XCTAssertEqual(seconds, 0, accuracy: 0.0001)
+    }
 }

@@ -27,4 +27,13 @@ enum TrackDuration {
     static func preciseAsset(url: URL) -> AVURLAsset {
         AVURLAsset(url: url, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
     }
+
+    /// Prefer a known MediaItem / metadata length; otherwise load precise asset timing.
+    static func resolvedPlaybackSeconds(raw: TimeInterval, fileURL: URL) async -> TimeInterval {
+        let known = playbackSeconds(fromRaw: raw)
+        if known > 0 { return known }
+        let asset = preciseAsset(url: fileURL)
+        guard let cm = try? await asset.load(.duration) else { return 0 }
+        return playbackSeconds(from: cm)
+    }
 }
