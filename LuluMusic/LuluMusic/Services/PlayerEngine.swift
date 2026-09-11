@@ -31,7 +31,7 @@ final class PlayerEngine {
 
     var playbackModeTitle: String { navigator.mode.title }
 
-    var currentTimeMS: Int { PlaybackResumeState.positionMS(from: currentTime) }
+    var currentTimeMS: Int { PlaybackClock.milliseconds(fromPlayerSeconds: currentTime) }
 
     private var player: AVPlayer?
     private var timeObserver: Any?
@@ -41,6 +41,7 @@ final class PlayerEngine {
     private var unshuffledQueue: [PlaybackItem] = []
     private var remoteConfigured = false
     private var shouldResumeAfterInterruption = false
+    private var lastResumePositionMS = -1
 
     init() {
         AudioSessionController.activatePlayback()
@@ -152,6 +153,11 @@ final class PlayerEngine {
             currentIndex = index
             loadCurrent(autoplay: true)
         }
+    }
+
+    func livePlayerMilliseconds() -> Int {
+        snapshotFromAVPlayer()
+        return currentTimeMS
     }
 
     func seek(to time: TimeInterval) {
@@ -287,12 +293,7 @@ final class PlayerEngine {
         let interval = CMTime(seconds: 0.05, preferredTimescale: 600)
         timeObserver = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             Task { @MainActor [weak self] in
-                guard let self else { return }
-                self.currentTime = time.seconds.isFinite ? time.seconds : 0
-                if let d = self.player?.currentItem?.duration, d.isNumeric, !d.isIndefinite {
-                    self.duration = d.seconds
-                }
-                self.persistResume()
+                self?.applyAVPlayerTime(time)
             }
         }
 
@@ -316,6 +317,35 @@ final class PlayerEngine {
         }
         persistResume()
         publishNowPlaying()
+    }
+
+    private func applyAVPlayerTime(_ observed: CMTime) {
+        if let live = player?.currentTime(), live.isNumeric {
+            let seconds = live.seconds
+            currentTime = seconds.isFinite ? max(0, seconds) : 0
+        } else if observed.isNumeric {
+            let seconds = observed.seconds
+            currentTime = seconds.isFinite ? max(0, seconds) : 0
+        }
+        if let d = player?.currentItem?.duration, d.isNumeric, !d.isIndefinite {
+            duration = d.seconds
+        }
+        maybePersistResume()
+    }
+
+    private func snapshotFromAVPlayer() {
+        guard let live = player?.currentTime(), live.isNumeric else { return }
+        let seconds = live.seconds
+        if seconds.isFinite {
+            currentTime = max(0, seconds)
+        }
+    }
+
+    private func maybePersistResume() {
+        let ms = currentTimeMS
+        guard abs(ms - lastResumePositionMS) >= 1_000 else { return }
+        lastResumePositionMS = ms
+        persistResume()
     }
 
     private func publishNowPlaying() {

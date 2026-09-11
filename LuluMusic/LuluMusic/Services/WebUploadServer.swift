@@ -37,6 +37,7 @@ final class WebUploadServer {
     var statusText = L10n.serverStopped
 
     var onFileReady: ((URL, String) async throws -> Void)?
+    var pairingStore: PairingCodeStoring = UserDefaultsPairingCodeStore()
 
     var publicURL: URL? {
         guard isRunning, let url = LANBindPolicy.advertisedURL(ips: lanIPs, port: port) else { return nil }
@@ -50,12 +51,16 @@ final class WebUploadServer {
     private var engine: HTTPListenerEngine?
 
     func start() {
+        if isRunning {
+            lanIPs = LocalIPAddress.lanIPv4Addresses()
+            return
+        }
         stop()
         lastError = nil
         token = Self.makeToken()
-        let code = PairingCode.generate()
+        let code = PairingCodeStore.loadOrCreate(from: pairingStore)
         pairingDigits = code.digits
-        lanIPs = LocalIPAddress.lanIPv4Addresses().filter(LANBindPolicy.isAdvertisableLAN)
+        lanIPs = LocalIPAddress.lanIPv4Addresses()
         let engine = HTTPListenerEngine(preferredPort: 8787)
         engine.authBox = AuthBox(pairingCode: code)
         self.engine = engine
@@ -66,7 +71,7 @@ final class WebUploadServer {
                 self.port = port
                 self.isRunning = true
                 self.statusText = L10n.serverRunning
-                self.lanIPs = LocalIPAddress.lanIPv4Addresses().filter(LANBindPolicy.isAdvertisableLAN)
+                self.lanIPs = LocalIPAddress.lanIPv4Addresses()
                 UIApplication.shared.isIdleTimerDisabled = true
             }
         }
@@ -232,10 +237,21 @@ final class HTTPListenerEngine: @unchecked Sendable {
     }
 
     private func bind(port: UInt16) throws {
-        let parameters = NWParameters.tcp
+        let tcp = NWProtocolTCP.Options()
+        let parameters = NWParameters(tls: nil, tcp: tcp)
         parameters.allowLocalEndpointReuse = true
+        parameters.acceptLocalOnly = false
+        parameters.includePeerToPeer = true
+        parameters.allowFastOpen = true
+        parameters.prohibitedInterfaceTypes = [.cellular, .loopback]
+        if let ipOptions = parameters.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+            ipOptions.version = .v4
+        }
         let nwPort = NWEndpoint.Port(rawValue: port) ?? .any
         let listener = try NWListener(using: parameters, on: nwPort)
+        if LANBindPolicy.listenerAdvertisesBonjour {
+            listener.service = NWListener.Service(name: "LoveSong", type: LANBindPolicy.bonjourServiceType)
+        }
         self.listener = listener
 
         listener.stateUpdateHandler = { [weak self] state in
@@ -396,7 +412,7 @@ private final class HTTPConnection: @unchecked Sendable {
 
         switch decision {
         case .rejectedDelete:
-            send(status: 403, contentType: "text/plain; charset=utf-8", body: Data("网页端不允许删除曲库。".utf8))
+            send(status: 403, contentType: "text/plain; charset=utf-8", body: Data("网页端不允许删除演唱会回忆。".utf8))
         case .page:
             let html = authorized ? UploadPageHTML.document() : UploadPageHTML.pairingPage()
             send(status: 200, contentType: "text/html; charset=utf-8", body: Data(html.utf8))

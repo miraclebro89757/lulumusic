@@ -53,7 +53,7 @@
 		<string>_lovesong._tcp</string>
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>LoveSong 通过同一 Wi‑Fi 开启网页上传，方便你从电脑把音频文件传到手机曲库。</string>
+	<string>LoveSong 通过同一 Wi‑Fi 开启网页上传，方便你从电脑把音频文件传到手机的演唱会回忆。</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>

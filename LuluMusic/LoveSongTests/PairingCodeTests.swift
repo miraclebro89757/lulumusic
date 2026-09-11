@@ -34,4 +34,13 @@ final class PairingCodeTests: XCTestCase {
         }
         XCTAssertTrue(auth.isAuthorized(sessionToken: token))
     }
+
+    func testReusesStoredPairingCodeInsteadOfRegenerating() {
+        let store = InMemoryPairingCodeStore()
+        let first = PairingCodeStore.loadOrCreate(from: store, generate: { 2 })
+        XCTAssertEqual(first.digits, "2222")
+        let second = PairingCodeStore.loadOrCreate(from: store, generate: { 9 })
+        XCTAssertEqual(second.digits, "2222")
+        XCTAssertEqual(store.load()?.digits, "2222")
+    }
 }

@@ -4,7 +4,7 @@ enum L10n {
     static let appName = "LoveSong"
     static let appNameEN = "LoveSong"
 
-    static let tabLibrary = "曲库"
+    static let tabLibrary = "演唱会回忆"
     static let tabPlayer = "播放"
 
     static let searchPrompt = "搜索歌名、歌手或现场"
@@ -34,7 +34,7 @@ enum L10n {
     static let nowPlaying = "正在播放"
     static let upNext = "待播队列"
     static let noTrack = "尚未选择歌曲"
-    static let pickFromLibrary = "从曲库点一首开始听"
+    static let pickFromLibrary = "从演唱会回忆点一首开始听"
 
     static let sequential = "顺序播放"
     static let shuffle = "随机播放"
@@ -52,21 +52,19 @@ enum L10n {
 
     static let webUploadTitle = "网页上传"
     static let webUploadHint = "手机与电脑连同一 Wi‑Fi。浏览器打开下方地址，先输入 4 位配对码。"
-    static let startServer = "开始服务"
-    static let stopServer = "停止服务"
     static let serverRunning = "服务进行中"
     static let serverStopped = "服务未开启"
     static let lanAddress = "局域网地址"
     static let pairingCode = "配对码"
     static let pairingHint = "电脑第一次打开页面时需要输入这个 4 位数字。"
-    static let scanQR = "用电脑浏览器扫码"
     static let copyURL = "复制链接"
+    static let copyPairing = "复制配对码"
     static let copied = "已复制"
     static let noWiFi = "未检测到 Wi‑Fi 地址。请连接无线局域网后重试。"
     static let waitingUpload = "等待电脑上传…"
     static let receiving = "正在接收"
     static let failed = "失败"
-    static let keepForeground = "请保持本页在前台。锁屏或离开后会自动关闭上传服务。"
+    static let keepForeground = "上传时请保持本页打开，不要关闭或切走，否则传输会中断"
 
     static let danmakuPlaceholder = "发弹幕…"
     static let danmakuSend = "发送"

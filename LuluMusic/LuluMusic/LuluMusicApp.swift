@@ -14,7 +14,7 @@ struct LoveSongApp: App {
         do {
             container = try ModelContainer(for: schema, configurations: [configuration])
         } catch {
-            fatalError("无法创建曲库存储：\(error)")
+            fatalError("无法创建演唱会回忆存储：\(error)")
         }
         let library = LibraryService(container: container)
         _library = State(initialValue: library)

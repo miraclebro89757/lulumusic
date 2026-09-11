@@ -11,6 +11,7 @@ struct PlayerView: View {
     @State private var inspected: FlyingDanmaku?
     @FocusState private var danmakuFocused: Bool
     @State private var chromeReady = false
+    @State private var waveformPeaks: [Float] = []
 
     var body: some View {
         GeometryReader { proxy in
@@ -43,8 +44,8 @@ struct PlayerView: View {
                     ConcertScrubber(
                         current: player.currentTime,
                         duration: player.duration,
+                        peaks: waveformPeaks,
                         enabled: player.current != nil,
-                        seed: (player.current?.title ?? "") + (player.current?.artist ?? ""),
                         accent: CoverPalette.waveformTint(from: player.current?.artworkURL)
                     ) { player.seek(to: $0) }
                     .padding(.horizontal, LoveSongTheme.Space.screen)
@@ -87,6 +88,7 @@ struct PlayerView: View {
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             reloadDanmakuCatalog()
+            loadWaveform()
             if showsDismiss {
                 withAnimation(.easeOut(duration: 0.28).delay(0.05)) { chromeReady = true }
             } else {
@@ -95,6 +97,7 @@ struct PlayerView: View {
         }
         .onChange(of: player.current?.id) { _, _ in
             reloadDanmakuCatalog()
+            loadWaveform()
         }
         .onChange(of: player.currentTimeMS) { _, now in
             guard player.danmakuEnabled, let id = player.current?.id else { return }
@@ -198,9 +201,28 @@ struct PlayerView: View {
         guard let id = player.current?.id else { return }
         runtime.store = danmakuService
         runtime.enabled = player.danmakuEnabled
-        if runtime.send(trackId: id, text: draft, currentTimeMS: player.currentTimeMS) != nil {
-            draft = ""
-            danmakuFocused = false
+        let text = draft
+        draft = ""
+        let ms = player.livePlayerMilliseconds()
+        if let record = runtime.send(trackId: id, text: text, currentTimeMS: ms) {
+            danmakuService.persist(record)
+        } else {
+            draft = text
+        }
+    }
+
+    private func loadWaveform() {
+        guard let url = player.current?.fileURL else {
+            waveformPeaks = []
+            return
+        }
+        let trackID = player.current?.id
+        Task {
+            let peaks = await AudioWaveformAnalyzer.peaks(from: url)
+            await MainActor.run {
+                guard player.current?.id == trackID else { return }
+                waveformPeaks = peaks
+            }
         }
     }
 

@@ -104,6 +104,8 @@ struct DanmakuRuntime {
     var flying: [FlyingDanmaku] = []
     var spawnedIDs: Set<UUID> = []
     var enabled: Bool = true
+    private var catalog: [DanmakuRecord] = []
+    private var catalogLoaded = false
 
     init(store: DanmakuStoring, scheduler: DanmakuScheduler = DanmakuScheduler()) {
         self.store = store
@@ -113,22 +115,24 @@ struct DanmakuRuntime {
     mutating func resetTrack() {
         flying = []
         spawnedIDs = []
+        catalog = []
+        catalogLoaded = false
     }
 
-    /// Immediate enqueue (appear delay 0ms, budget ≤ 100ms).
+    /// Optimistic fly: enqueue on the hot path only. Persist separately.
     @discardableResult
     mutating func send(trackId: UUID, text: String, currentTimeMS: Int, now: Date = Date()) -> DanmakuRecord? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard enabled, !trimmed.isEmpty else { return nil }
         let record = DanmakuRecord(trackId: trackId, timestampMS: currentTimeMS, text: trimmed, createdAt: now)
-        store.insert(record)
+        catalog.append(record)
         spawn(record, at: currentTimeMS, live: true)
         return record
     }
 
     mutating func tick(trackId: UUID, currentTimeMS: Int) {
         guard enabled else { return }
-        let catalog = store.records(for: trackId)
+        ensureCatalog(trackId: trackId)
         for record in catalog where scheduler.shouldSpawnReplay(
             record: record,
             currentTimeMS: currentTimeMS,
@@ -137,6 +141,21 @@ struct DanmakuRuntime {
             spawn(record, at: currentTimeMS, live: false)
         }
         applyDensityCap()
+    }
+
+    mutating func persist(_ record: DanmakuRecord) {
+        store.insert(record)
+    }
+
+    private mutating func ensureCatalog(trackId: UUID) {
+        guard !catalogLoaded else { return }
+        let pending = catalog
+        catalog = store.records(for: trackId)
+        let seen = Set(catalog.map(\.id))
+        for record in pending where !seen.contains(record.id) {
+            catalog.append(record)
+        }
+        catalogLoaded = true
     }
 
     private mutating func spawn(_ record: DanmakuRecord, at timeMS: Int, live: Bool) {

@@ -8,10 +8,10 @@
 
 ## 相对上一版 LuluMusic 的变化
 
-- 产品名改为 LoveSong；主界面收成 **曲库 + 播放** 两页（深色演唱会风）。
+- 产品名改为 LoveSong；主界面收成 **演唱会回忆 + 播放** 两页（深色演唱会风）。
 - 播放模式三态：顺序 / 单曲循环 / 随机（去掉列表循环）。
-- Wi‑Fi 导入展示 `http://IP:port`，**4 位配对码** 首次必填；离开页面或锁屏停服；网页不能删歌。
-- 曲库列：歌名 / 歌手 / 现场 / 时长；可搜索现场标签。
+- Wi‑Fi 导入展示 `http://IP:port`，**4 位配对码** 首次必填；进入页自动开服、离开自动停服；网页不能删歌。
+- 演唱会回忆列：歌名 / 歌手 / 现场 / 时长；可搜索现场标签。
 - 播放器常驻弹幕输入；按 `trackId + 毫秒时间戳` 本地回放（误差目标 ±300ms）。
 - 杀掉 App 后恢复当前曲、进度、弹幕开关、播放模式。
 - 新增 `LoveSongTests`（纯逻辑，不依赖 UI）。
@@ -29,8 +29,8 @@
 | F05 后台音频 + 锁屏 / 控制中心 | 完成（沿用） |
 | F06 发弹幕，右→左飞过封面 | 完成 |
 | F07 弹幕按曲目+时间回放 | 完成 |
-| F08 曲库列 + 单击播放 + 搜索 | 完成 |
-| F09 曲库/进度/弹幕开关持久化 | 完成 |
+| F08 演唱会回忆列 + 单击播放 + 搜索 | 完成 |
+| F09 演唱会回忆/进度/弹幕开关持久化 | 完成 |
 | F10 三态播放模式 | 完成 |
 
 未做（按产品确认）：F14 长录音章节；F17–F21（含 F18 长图导出，以后再做）；账号 / 流媒体 / 社交。
@@ -71,8 +71,10 @@ Xcode：**Product › Test**（⌘U），scheme **LoveSong**。
 - 4 位配对码与上传鉴权
 - 播放模式状态机
 - 进度 / 弹幕开关恢复
-- 曲库搜索与 `venueTag`
+- 演唱会回忆搜索与 `venueTag`
 - 弹幕存储、提前 500ms 生成、±300ms、1–3 轨道、密度 5
+- Wi‑Fi 地址偏好（en0 / 192.168，排除蜂窝与环回）
+- AVPlayer 毫秒时钟、真实波形峰值、乐观弹幕发送
 
 本 Linux 环境没有 `xcodebuild`。提交前跑了 `python3 scripts/verify_lovesong_logic.py`（对照 Swift 源码与 XCTest 接线）。**以 Mac 上 `xcodebuild test` 为绿灯标准。**
 
@@ -85,13 +87,26 @@ Xcode：**Product › Test**（⌘U），scheme **LoveSong**。
 3. USB 连 iPhone（iOS 17+），必要时打开开发者模式。  
 4. ⌘R 装到手机。  
 5. **设置 › 通用 › VPN 与设备管理** 信任该 Apple ID。  
-6. 网页上传：同一 Wi‑Fi，打开曲库 › Wi‑Fi 图标，电脑访问显示的 `http://IP:port`，输入 4 位配对码。保持该页在前台。
+6. 网页上传：同一 Wi‑Fi，打开 **演唱会回忆** › Wi‑Fi 图标。进入该页会自动开服并弹出「本地网络」授权；电脑浏览器打开显示的 `http://IP:port`（不要用 127.0.0.1），输入 4 位配对码。上传时请保持本页打开，不要关闭或切走。
 
 ---
 
 ## 视觉（演唱会舞台）
 
-深色优先：舞台近黑 `#0A0A0C`、追光橙 `#FF8A3D`。大封面 ZStack 舞台 + 封面色 LinearGradient；弹幕叠在封面上。播放页波形细进度（可选封面平均色，播放键仍为暖橙）。玻璃卡片约 24pt 圆角。MiniPlayer 为底部 `.thinMaterial` 胶囊，点按 morph 到全屏播放器。弹幕输入为可上拖的 ultraThinMaterial 胶囊（安全区感知，不是社交层）。iOS 26 Tab accessory，更早系统回落自定义胶囊。Scheme / target 未改。
+深色优先：舞台近黑 `#0A0A0C`、追光橙 `#FF8A3D`。大封面 ZStack 舞台 + 封面色 LinearGradient；弹幕叠在封面上。播放页波形来自音频文件采样峰值（AVAssetReader），随 AVPlayer 进度着色。玻璃卡片约 24pt 圆角。MiniPlayer 为底部 `.thinMaterial` 胶囊，点按 morph 到全屏播放器。弹幕输入为底部固定栏（不可拖动）。iOS 26 Tab accessory，更早系统回落自定义胶囊。Scheme / target 未改。
+
+---
+
+## 真机 Wi‑Fi 网页上传核对
+
+手机与电脑必须连**同一个 Wi‑Fi**（不要用个人热点当电脑侧网络，除非电脑也连这台 iPhone 热点）。
+
+1. 打开 LoveSong → **演唱会回忆** → Wi‑Fi 导入。服务应自动开始，无「开始 / 停止」按钮。
+2. 首次进入若弹出 **本地网络** 权限，选允许。
+3. 页面显示 `http://192.168.x.x:端口` 或 `http://10.x.x.x:端口`（应是 Wi‑Fi IPv4，不是蜂窝、不是 `127.0.0.1`）。链接与配对码都可长按/复制。
+4. 电脑浏览器打开该地址（明文 HTTP）。第一次输入 4 位配对码。
+5. 拖入 mp3 / m4a / aac / wav / flac。进度出现在手机本页。
+6. 离开本页或切走 App，服务会停；传输会中断。再进来会自动开服，配对码保持不变。
 
 ---
 
@@ -101,7 +116,7 @@ Xcode：**Product › Test**（⌘U），scheme **LoveSong**。
 LuluMusic/LuluMusic.xcodeproj     # scheme: LoveSong / LuluMusic
 LuluMusic/LuluMusic/Theme/        # LoveSongTheme 演唱会色板与字体
 LuluMusic/LuluMusic/Core/         # 可单测逻辑（格式、配对、模式、弹幕、恢复）
-LuluMusic/LuluMusic/Views/        # 曲库、播放器、网页上传、舞台组件、PlayerChrome
+LuluMusic/LuluMusic/Views/        # 演唱会回忆、播放器、网页上传、舞台组件、PlayerChrome
 LuluMusic/LoveSongTests/          # XCTest
 ```
 

@@ -5,7 +5,8 @@ struct WebUploadView: View {
     @Environment(LibraryService.self) private var library
     @Environment(\.scenePhase) private var scenePhase
     @State private var server = WebUploadServer()
-    @State private var copied = false
+    @State private var copiedURL = false
+    @State private var copiedPairing = false
 
     var body: some View {
         ZStack {
@@ -15,14 +16,16 @@ struct WebUploadView: View {
                     Text(L10n.webUploadHint)
                         .font(.subheadline)
                         .foregroundStyle(LoveSongTheme.textSecondary)
-                    Text(L10n.keepForeground)
-                        .font(.footnote)
-                        .foregroundStyle(LoveSongTheme.textTertiary)
+                    Text(LANBindPolicy.stayOpenBanner)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(LoveSongTheme.spotlight)
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(LoveSongTheme.stageElevated, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
 
                     statusCard
                     if server.isRunning {
                         addressCard
-                        qrCard
                     }
                     uploadsCard
                 }
@@ -34,20 +37,14 @@ struct WebUploadView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(LoveSongTheme.stageBackground, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(server.isRunning ? L10n.stopServer : L10n.startServer) {
-                    if server.isRunning {
-                        server.stop()
-                    } else {
-                        startServer()
-                    }
-                }
-                .foregroundStyle(LoveSongTheme.spotlight)
-            }
+        .onAppear {
+            LocalNetworkAccess.request()
+            startServer()
         }
-        .onAppear { startServer() }
-        .onDisappear { server.stop() }
+        .onDisappear {
+            LocalNetworkAccess.end()
+            server.stop()
+        }
         .onChange(of: scenePhase) { _, phase in
             let runtime: AppRuntimePhase
             switch phase {
@@ -56,7 +53,9 @@ struct WebUploadView: View {
             case .background: runtime = .background
             @unknown default: runtime = .inactive
             }
-            if !WebImportLifecycle.shouldServe(pageVisible: true, phase: runtime) {
+            if WebImportLifecycle.shouldServe(pageVisible: true, phase: runtime) {
+                startServer()
+            } else {
                 server.stop()
             }
         }
@@ -101,6 +100,14 @@ struct WebUploadView: View {
                         .font(.system(.body, design: .monospaced))
                         .foregroundStyle(LoveSongTheme.textPrimary)
                         .textSelection(.enabled)
+                    Button {
+                        UIPasteboard.general.string = server.publicURLString
+                        copiedURL = true
+                    } label: {
+                        Label(copiedURL ? L10n.copied : L10n.copyURL, systemImage: copiedURL ? "checkmark" : "doc.on.doc")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(LoveSongTheme.spotlight)
+                    }
                     Text(L10n.pairingCode)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(LoveSongTheme.textSecondary)
@@ -109,45 +116,24 @@ struct WebUploadView: View {
                         .font(LoveSongTheme.Font.pairing)
                         .foregroundStyle(LoveSongTheme.spotlight)
                         .tracking(10)
+                        .textSelection(.enabled)
                     Text(L10n.pairingHint)
                         .font(.caption)
                         .foregroundStyle(LoveSongTheme.textTertiary)
+                    Button {
+                        UIPasteboard.general.string = server.pairingDigits
+                        copiedPairing = true
+                    } label: {
+                        Label(copiedPairing ? L10n.copied : L10n.copyPairing, systemImage: copiedPairing ? "checkmark" : "doc.on.doc")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(LoveSongTheme.spotlight)
+                    }
                     ForEach(server.lanIPs.dropFirst(), id: \.self) { ip in
                         Text("http://\(ip):\(server.port)")
                             .font(.caption.monospaced())
                             .foregroundStyle(LoveSongTheme.textTertiary)
                             .textSelection(.enabled)
                     }
-                    Button {
-                        UIPasteboard.general.string = server.publicURLString
-                        copied = true
-                    } label: {
-                        Label(copied ? L10n.copied : L10n.copyURL, systemImage: copied ? "checkmark" : "doc.on.doc")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(LoveSongTheme.spotlight)
-                    }
-                }
-            }
-        }
-    }
-
-    private var qrCard: some View {
-        StageSurface {
-            VStack(spacing: 12) {
-                Text(L10n.scanQR)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(LoveSongTheme.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if let url = server.publicURLString.nilIfEmpty,
-                   let uiImage = QRCodeImage.uiImage(from: url) {
-                    Image(uiImage: uiImage)
-                        .interpolation(.none)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 200, height: 200)
-                        .padding(12)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .frame(maxWidth: .infinity)
                 }
             }
         }
@@ -193,7 +179,8 @@ struct WebUploadView: View {
             _ = try await library.importFile(from: url, source: .web, originalName: name)
         }
         server.start()
-        copied = false
+        copiedURL = false
+        copiedPairing = false
     }
 
     private func byteText(_ value: Int64) -> String {
@@ -202,8 +189,4 @@ struct WebUploadView: View {
         formatter.countStyle = .file
         return formatter.string(fromByteCount: value)
     }
-}
-
-private extension String {
-    var nilIfEmpty: String? { isEmpty ? nil : self }
 }

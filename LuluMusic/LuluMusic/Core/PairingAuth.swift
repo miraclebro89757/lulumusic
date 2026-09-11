@@ -49,3 +49,46 @@ struct WiFiImportAuth: Equatable {
         return sessions.contains(sessionToken)
     }
 }
+
+protocol PairingCodeStoring: AnyObject {
+    func load() -> PairingCode?
+    func save(_ code: PairingCode)
+}
+
+final class InMemoryPairingCodeStore: PairingCodeStoring {
+    private var code: PairingCode?
+
+    func load() -> PairingCode? { code }
+
+    func save(_ code: PairingCode) { self.code = code }
+}
+
+final class UserDefaultsPairingCodeStore: PairingCodeStoring {
+    static let key = "lovesong.wifi.pairing.v1"
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    func load() -> PairingCode? {
+        guard let digits = defaults.string(forKey: Self.key) else { return nil }
+        return PairingCode(digits: digits)
+    }
+
+    func save(_ code: PairingCode) {
+        defaults.set(code.digits, forKey: Self.key)
+    }
+}
+
+enum PairingCodeStore {
+    static func loadOrCreate(
+        from store: PairingCodeStoring,
+        generate: @escaping () -> Int = { Int.random(in: 0...9) }
+    ) -> PairingCode {
+        if let existing = store.load() { return existing }
+        let code = PairingCode.generate(using: generate)
+        store.save(code)
+        return code
+    }
+}
