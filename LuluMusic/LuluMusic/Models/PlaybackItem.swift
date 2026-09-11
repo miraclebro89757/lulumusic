@@ -11,6 +11,7 @@ struct PlaybackItem: Identifiable, Hashable, Sendable {
     let fileURL: URL
     let artworkURL: URL?
     let lastPositionMS: Int
+    let addedAt: Date
 
     init(track: Track) {
         id = track.id
@@ -22,5 +23,6 @@ struct PlaybackItem: Identifiable, Hashable, Sendable {
         fileURL = track.resolvedFileURL
         artworkURL = track.resolvedArtworkURL
         lastPositionMS = track.lastPositionMS
+        addedAt = track.dateAdded
     }
 }

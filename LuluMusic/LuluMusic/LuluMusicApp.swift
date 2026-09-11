@@ -7,6 +7,7 @@ struct LoveSongApp: App {
     @State private var player: PlayerEngine
     @State private var library: LibraryService
     @State private var danmaku: DanmakuService
+    @State private var favorites: FavoriteStore
 
     init() {
         let schema = Schema([Track.self, DanmakuComment.self])
@@ -20,6 +21,7 @@ struct LoveSongApp: App {
         _library = State(initialValue: library)
         _player = State(initialValue: PlayerEngine())
         _danmaku = State(initialValue: DanmakuService(container: container))
+        _favorites = State(initialValue: FavoriteStore())
         try? LibraryPaths.ensureDirectories()
         LoveSongTheme.applyChrome()
     }
@@ -30,6 +32,7 @@ struct LoveSongApp: App {
                 .environment(player)
                 .environment(library)
                 .environment(danmaku)
+                .environment(favorites)
                 .preferredColorScheme(.dark)
                 .task {
                     player.restoreSession(library: library.allTracks())

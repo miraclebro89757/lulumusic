@@ -21,28 +21,46 @@ struct VenueChip: View {
 
 struct VenueGlassStrip: View {
     var text: String
+    var dateText: String
     var onOpenLive: () -> Void
     var onEdit: (() -> Void)? = nil
 
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "mappin.and.ellipse")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(LoveSongTheme.accent)
-            Text(text.isEmpty ? L10n.venueAdd : text)
-                .font(.subheadline)
-                .foregroundStyle(text.isEmpty ? LoveSongTheme.textTertiary : LoveSongTheme.textPrimary)
-                .lineLimit(1)
-            Spacer(minLength: 8)
-            Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(LoveSongTheme.textTertiary)
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(LoveSongTheme.accent.opacity(0.22))
+                Image(systemName: "waveform.path.ecg")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(LoveSongTheme.accent)
+            }
+            .frame(width: 32, height: 32)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(L10n.liveLabel) · \(dateText)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(LoveSongTheme.textPrimary)
+                Text(text.isEmpty ? L10n.venueAdd : text)
+                    .font(.subheadline)
+                    .foregroundStyle(text.isEmpty ? LoveSongTheme.textTertiary : LoveSongTheme.textPrimary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text(L10n.hqBadge)
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(LoveSongTheme.textPrimary.opacity(0.88))
+                .padding(.horizontal, 9)
+                .padding(.vertical, 5)
+                .overlay(
+                    Capsule().stroke(Color.white.opacity(0.42), lineWidth: 1)
+                )
         }
         .padding(.horizontal, 14)
-        .frame(height: 36)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .frame(minHeight: 48)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(LoveSongTheme.hairline, lineWidth: 1)
         )
         .contentShape(Rectangle())
