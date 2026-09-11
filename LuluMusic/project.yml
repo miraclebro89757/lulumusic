@@ -29,6 +29,7 @@ targets:
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         CODE_SIGN_ENTITLEMENTS: LuluMusic/LuluMusic.entitlements
         CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 5595Y4TR6U
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         DEVELOPMENT_ASSET_PATHS: "\"LuluMusic/Preview Content\""

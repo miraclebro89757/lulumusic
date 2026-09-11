@@ -276,6 +276,7 @@ common_target_settings = """
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\\"LuluMusic/Preview Content\\"";
+				DEVELOPMENT_TEAM = 5595Y4TR6U;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LuluMusic/Info.plist;
@@ -304,6 +305,7 @@ test_settings = """
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5595Y4TR6U;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
@@ -448,9 +450,13 @@ pbxproj = f"""// !$*UTF8*$!
 				TargetAttributes = {{
 					{target_id} = {{
 						CreatedOnToolsVersion = 15.4;
+						DevelopmentTeam = 5595Y4TR6U;
+						ProvisioningStyle = Automatic;
 					}};
 					{test_target} = {{
 						CreatedOnToolsVersion = 15.4;
+						DevelopmentTeam = 5595Y4TR6U;
+						ProvisioningStyle = Automatic;
 						TestTargetID = {target_id};
 					}};
 				}};
